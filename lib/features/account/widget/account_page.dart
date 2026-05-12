@@ -33,9 +33,40 @@ class AccountPage extends HookConsumerWidget {
       return _buildLoggedOutState(context, theme, api, isLoading, errorMsg);
     }
 
-    if (isLoading.value && userProfile.value == null) {
+    if (isLoading.value) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Error state or no data — show retry
+    if (userProfile.value == null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(FluentIcons.error_circle_24_regular,
+                    size: 64, color: theme.colorScheme.error),
+                const Gap(16),
+                Text(
+                  errorMsg.value ?? 'Не удалось загрузить профиль',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const Gap(24),
+                FilledButton(
+                  onPressed: () => _loadProfile(
+                    api, userProfile, subscription, errorMsg, isLoading,
+                  ),
+                  child: const Text('Повторить'),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -162,9 +193,11 @@ class AccountPage extends HookConsumerWidget {
     final refCode = profile['ref_code'] as String? ?? '';
     final bonusDays = profile['bonus_days'] as int? ?? 0;
 
-    // Traffic
-    final trafficUsed = sub?['traffic_used_bytes'] as int? ?? 0;
-    final trafficTotal = sub?['traffic_total_bytes'] as int? ?? 0;
+    // Traffic — handle both int and double from JSON
+    final trafficUsedRaw = sub?['traffic_used_bytes'];
+    final trafficTotalRaw = sub?['traffic_total_bytes'];
+    final trafficUsed = (trafficUsedRaw is num) ? trafficUsedRaw.toDouble() : 0.0;
+    final trafficTotal = (trafficTotalRaw is num) ? trafficTotalRaw.toDouble() : 0.0;
     final trafficUsedGB = trafficUsed / (1024 * 1024 * 1024);
     final trafficTotalGB = trafficTotal > 0 ? trafficTotal / (1024 * 1024 * 1024) : 0.0;
     final trafficPercent = trafficTotal > 0 ? trafficUsed / trafficTotal : 0.0;
@@ -400,10 +433,14 @@ class PlanSelectionPage extends HookConsumerWidget {
     final api = ref.watch(psrouteApiProvider);
     final plans = useState<List<Map<String, dynamic>>>([]);
     final isLoading = useState(true);
+    final errorMsg = useState<String?>(null);
 
     useEffect(() {
       api.getPlans().then((p) {
         plans.value = p;
+        isLoading.value = false;
+      }).catchError((e) {
+        errorMsg.value = e.toString();
         isLoading.value = false;
       });
       return null;
@@ -417,7 +454,43 @@ class PlanSelectionPage extends HookConsumerWidget {
       ),
       body: isLoading.value
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
+          : errorMsg.value != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Не удалось загрузить тарифы',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        const Gap(8),
+                        Text(
+                          errorMsg.value!,
+                          style: theme.textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const Gap(16),
+                        FilledButton(
+                          onPressed: () {
+                            isLoading.value = true;
+                            errorMsg.value = null;
+                            api.getPlans().then((p) {
+                              plans.value = p;
+                              isLoading.value = false;
+                            }).catchError((e) {
+                              errorMsg.value = e.toString();
+                              isLoading.value = false;
+                            });
+                          },
+                          child: const Text('Повторить'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: plans.value.length,
               itemBuilder: (context, index) {

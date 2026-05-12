@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,6 +14,10 @@ class PSRouteApiService with InfraLogger {
 
   final Dio _dio;
   String? _authToken;
+  final Completer<void> _initCompleter = Completer<void>();
+
+  /// Future that resolves once init() has loaded the saved token.
+  Future<void> get initialized => _initCompleter.future;
 
   PSRouteApiService()
       : _dio = Dio(
@@ -25,11 +31,14 @@ class PSRouteApiService with InfraLogger {
 
   /// Initialize: load saved token from SharedPreferences.
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _authToken = prefs.getString('psroute_auth_token');
-    if (_authToken != null) {
-      _dio.options.headers['Authorization'] = 'Bearer $_authToken';
-      loggy.debug('Loaded saved auth token');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString('psroute_auth_token');
+      if (_authToken != null) {
+        _dio.options.headers['Authorization'] = 'Bearer $_authToken';
+      }
+    } finally {
+      if (!_initCompleter.isCompleted) _initCompleter.complete();
     }
   }
 

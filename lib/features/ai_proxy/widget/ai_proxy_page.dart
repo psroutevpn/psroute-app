@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/features/psroute_api/psroute_api_service.dart';
+import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class AIProxyPage extends HookConsumerWidget {
@@ -19,6 +20,25 @@ class AIProxyPage extends HookConsumerWidget {
     final selectedModel = useState('gpt-4o');
     final textController = useTextEditingController();
     final scrollController = useScrollController();
+
+    // Fetch available models from API
+    final availableModels = useState<List<Map<String, dynamic>>>([
+      {'id': 'gpt-4o', 'name': 'GPT-4o'},
+      {'id': 'claude-sonnet', 'name': 'Claude Sonnet'},
+      {'id': 'gemini-pro', 'name': 'Gemini Pro'},
+    ]);
+
+    useEffect(() {
+      if (api.isAuthenticated) {
+        api.getAIModels().then((data) {
+          final models = data['models'] as List?;
+          if (models != null && models.isNotEmpty) {
+            availableModels.value = List<Map<String, dynamic>>.from(models);
+          }
+        }).catchError((_) {}); // fallback to hardcoded
+      }
+      return null;
+    }, [api.isAuthenticated]);
 
     if (!api.isAuthenticated) {
       return Scaffold(
@@ -41,8 +61,9 @@ class AIProxyPage extends HookConsumerWidget {
                 const Gap(24),
                 FilledButton(
                   onPressed: () {
-                    // Navigate to account tab
-                    // This would be handled by the parent navigation
+                    UriUtils.tryLaunch(
+                      Uri.parse('https://t.me/PSRouteBot?start=login'),
+                    );
                   },
                   child: const Text('Войти в аккаунт'),
                 ),
@@ -57,15 +78,16 @@ class AIProxyPage extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('AI Прокси'),
         actions: [
-          // Model selector
+          // Model selector — dynamic from API
           PopupMenuButton<String>(
             initialValue: selectedModel.value,
             onSelected: (value) => selectedModel.value = value,
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'gpt-4o', child: Text('GPT-4o')),
-              const PopupMenuItem(value: 'claude-sonnet', child: Text('Claude Sonnet')),
-              const PopupMenuItem(value: 'gemini-pro', child: Text('Gemini Pro')),
-            ],
+            itemBuilder: (context) => availableModels.value
+                .map((m) => PopupMenuItem(
+                      value: m['id'] as String,
+                      child: Text(m['name'] as String? ?? m['id'] as String),
+                    ))
+                .toList(),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
@@ -90,7 +112,7 @@ class AIProxyPage extends HookConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(FluentIcons.bot_sparkle_24_regular,
-                            size: 48, color: theme.colorScheme.primary.withOpacity(0.5)),
+                            size: 48, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                         const Gap(12),
                         Text(
                           'Задайте вопрос AI',

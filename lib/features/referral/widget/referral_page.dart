@@ -107,7 +107,7 @@ class ReferralPage extends HookConsumerWidget {
                                       final shareUrl = stats.value?['share_url'] ?? '';
                                       if (shareUrl.isNotEmpty) {
                                         Share.share(
-                                          'Попробуй PS Route VPN — быстрый и надёжный VPN! '
+                                          'Попробуй PS Route — быстрый и надёжный сервис! '
                                           'Переходи по ссылке и получи бонус: $shareUrl',
                                         );
                                       }
