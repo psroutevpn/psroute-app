@@ -181,39 +181,83 @@ class PSRouteApiService with InfraLogger {
     required String plan,
     required String method,
   }) async {
-    final response = await _dio.post('/payment/create', data: {
-      'plan': plan,
-      'method': method,
-    });
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.post('/payment/create', data: {
+        'plan': plan,
+        'method': method,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      final detail = e.response?.data?['detail'];
+      throw Exception(detail ?? 'Ошибка создания платежа. Попробуйте позже.');
+    }
   }
 
   /// Poll payment status.
   Future<Map<String, dynamic>> getPaymentStatus(String orderId) async {
-    final response = await _dio.get('/payment/status/$orderId');
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.get('/payment/status/$orderId');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      throw Exception('Ошибка проверки платежа.');
+    }
   }
 
   // ─── Phase 3: Referrals ───────────────────────────────────
 
   /// Referral stats for current user.
   Future<Map<String, dynamic>> getReferralStats() async {
-    final response = await _dio.get('/referral/stats');
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.get('/referral/stats');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      loggy.warning('Failed to fetch referral stats', e);
+      return {'ref_code': '', 'total_referrals': 0, 'bonus_days_earned': 0};
+    }
   }
 
   /// Apply a referral code.
   Future<Map<String, dynamic>> applyReferral(String code) async {
-    final response = await _dio.post('/referral/apply', data: {'code': code});
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.post('/referral/apply', data: {'code': code});
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      final detail = e.response?.data?['detail'];
+      throw Exception(detail ?? 'Ошибка применения реферального кода.');
+    }
   }
 
   // ─── Phase 3: AI Proxy ────────────────────────────────────
 
   /// Available AI models list.
   Future<Map<String, dynamic>> getAIModels() async {
-    final response = await _dio.get('/ai/models');
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.get('/ai/models');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      loggy.warning('Failed to fetch AI models', e);
+      return {'models': [], 'requires_subscription': true};
+    }
   }
 
   /// Send chat message to AI proxy with conversation history.
@@ -223,19 +267,39 @@ class PSRouteApiService with InfraLogger {
     List<Map<String, String>>? history,
     String? conversationId,
   }) async {
-    final response = await _dio.post('/ai/chat', data: {
-      'model': model,
-      'message': message,
-      if (history != null && history.isNotEmpty) 'history': history,
-      if (conversationId != null) 'conversation_id': conversationId,
-    });
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.post('/ai/chat', data: {
+        'model': model,
+        'message': message,
+        if (history != null && history.isNotEmpty) 'history': history,
+        if (conversationId != null) 'conversation_id': conversationId,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      if (e.response?.statusCode == 403) {
+        throw Exception('AI прокси недоступен для вашего аккаунта.');
+      }
+      throw Exception('Ошибка AI сервиса. Попробуйте позже.');
+    }
   }
 
   /// AI token usage stats.
   Future<Map<String, dynamic>> getAIUsage() async {
-    final response = await _dio.get('/ai/usage');
-    return response.data as Map<String, dynamic>;
+    try {
+      final response = await _dio.get('/ai/usage');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await logout();
+        throw Exception('Сессия истекла. Войдите заново.');
+      }
+      loggy.warning('Failed to fetch AI usage', e);
+      return {'tokens_used': 0, 'requests_today': 0};
+    }
   }
 
   // ─── Phase 3: Push Notifications ──────────────────────────
@@ -247,19 +311,24 @@ class PSRouteApiService with InfraLogger {
     String? appVersion,
     String? osVersion,
   }) async {
-    await _dio.post('/device/register', data: {
-      'fcm_token': fcmToken,
-      if (deviceModel != null) 'device_model': deviceModel,
-      if (appVersion != null) 'app_version': appVersion,
-      if (osVersion != null) 'os_version': osVersion,
-    });
+    try {
+      await _dio.post('/device/register', data: {
+        'fcm_token': fcmToken,
+        if (deviceModel != null) 'device_model': deviceModel,
+        if (appVersion != null) 'app_version': appVersion,
+        if (osVersion != null) 'os_version': osVersion,
+      });
+    } on DioException catch (e) {
+      loggy.warning('Failed to register device', e);
+    }
   }
 }
 
-/// Global provider for PSRouteApiService.
+/// Global provider for PSRouteApiService (sync, keepAlive).
+/// Consumers that depend on auth state should await [initialized] first.
 @Riverpod(keepAlive: true)
 PSRouteApiService psrouteApi(Ref ref) {
   final service = PSRouteApiService();
-  service.init();
+  service.init(); // Completes asynchronously — await service.initialized where needed
   return service;
 }

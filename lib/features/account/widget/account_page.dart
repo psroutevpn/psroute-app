@@ -15,19 +15,31 @@ class AccountPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final api = ref.watch(psrouteApiProvider);
     final isLoading = useState(false);
+    final isInitialized = useState(false);
     final userProfile = useState<Map<String, dynamic>?>(null);
     final subscription = useState<Map<String, dynamic>?>(null);
     final errorMsg = useState<String?>(null);
 
-    // Load user profile if authenticated
+    // Wait for init to complete, then load profile if authenticated
     useEffect(() {
-      if (api.isAuthenticated) {
-        _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
-      }
+      () async {
+        await api.initialized;
+        isInitialized.value = true;
+        if (api.isAuthenticated) {
+          _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+        }
+      }();
       return null;
-    }, [api.isAuthenticated]);
+    }, []);
 
     final theme = Theme.of(context);
+
+    // Still loading saved auth token
+    if (!isInitialized.value) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (!api.isAuthenticated) {
       return _buildLoggedOutState(context, theme, api, isLoading, errorMsg);
@@ -195,6 +207,9 @@ class AccountPage extends HookConsumerWidget {
   ) {
     final codeController = TextEditingController();
     final theme = Theme.of(context);
+    // State declared OUTSIDE the builder so it persists across rebuilds
+    bool isVerifying = false;
+    String? dialogError;
 
     showDialog(
       context: context,
@@ -202,9 +217,6 @@ class AccountPage extends HookConsumerWidget {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            bool isVerifying = false;
-            String? dialogError;
-
             return AlertDialog(
               title: const Text('Введите код'),
               content: Column(
@@ -221,6 +233,9 @@ class AccountPage extends HookConsumerWidget {
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     textAlign: TextAlign.center,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                     style: theme.textTheme.headlineMedium?.copyWith(
                       letterSpacing: 8,
                       fontWeight: FontWeight.bold,
@@ -228,6 +243,7 @@ class AccountPage extends HookConsumerWidget {
                     decoration: InputDecoration(
                       hintText: '000000',
                       counterText: '',
+                      errorText: dialogError,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -242,28 +258,53 @@ class AccountPage extends HookConsumerWidget {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  onPressed: isVerifying
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
                   child: const Text('Отмена'),
                 ),
                 FilledButton(
-                  onPressed: () async {
-                    final code = codeController.text.trim();
-                    if (code.length != 6) return;
+                  onPressed: isVerifying
+                      ? null
+                      : () async {
+                          final code = codeController.text.trim();
+                          if (code.length != 6 || !RegExp(r'^\d{6}$').hasMatch(code)) {
+                            setDialogState(() {
+                              dialogError = 'Введите 6-значный код';
+                            });
+                            return;
+                          }
 
-                    isLoading.value = true;
-                    Navigator.of(dialogContext).pop();
+                          setDialogState(() {
+                            isVerifying = true;
+                            dialogError = null;
+                          });
 
-                    try {
-                      await api.verifyLoginCode(code);
-                      errorMsg.value = null;
-                      // Force rebuild — isAuthenticated is now true
-                    } catch (e) {
-                      errorMsg.value = e.toString().replaceFirst('Exception: ', '');
-                    } finally {
-                      isLoading.value = false;
-                    }
-                  },
-                  child: const Text('Войти'),
+                          try {
+                            await api.verifyLoginCode(code);
+                            errorMsg.value = null;
+                            // Close dialog on success
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
+                            // Force rebuild — isAuthenticated is now true
+                            isLoading.value = true;
+                            isLoading.value = false;
+                          } catch (e) {
+                            final msg = e.toString().replaceFirst('Exception: ', '');
+                            setDialogState(() {
+                              isVerifying = false;
+                              dialogError = msg;
+                            });
+                          }
+                        },
+                  child: isVerifying
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Войти'),
                 ),
               ],
             );
@@ -596,7 +637,7 @@ class PlanSelectionPage extends HookConsumerWidget {
               itemBuilder: (context, index) {
                 final plan = plans.value[index];
                 final badge = plan['badge'] as String?;
-                final pricePerMonth = plan['price_per_month'] as int;
+                final pricePerMonth = (plan['price_per_month'] as num?)?.toInt() ?? 0;
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -739,12 +780,18 @@ class PlanSelectionPage extends HookConsumerWidget {
   ) async {
     Navigator.pop(sheetContext);
 
+    // Track whether loading dialog is showing to prevent double-pop
+    bool loadingDialogShown = false;
+
     // Show loading indicator
-    showDialog(
-      context: parentContext,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
+    if (parentContext.mounted) {
+      loadingDialogShown = true;
+      showDialog(
+        context: parentContext,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     try {
       final result = await api.createPayment(
@@ -753,7 +800,10 @@ class PlanSelectionPage extends HookConsumerWidget {
       );
 
       // Close loading
-      if (parentContext.mounted) Navigator.pop(parentContext);
+      if (loadingDialogShown && parentContext.mounted) {
+        Navigator.pop(parentContext);
+        loadingDialogShown = false;
+      }
 
       // Stars → redirect to Telegram bot
       if (result['redirect_to_bot'] == true) {
@@ -771,12 +821,16 @@ class PlanSelectionPage extends HookConsumerWidget {
       }
     } catch (e) {
       // Close loading if still showing
-      if (parentContext.mounted) Navigator.pop(parentContext);
+      if (loadingDialogShown && parentContext.mounted) {
+        Navigator.pop(parentContext);
+        loadingDialogShown = false;
+      }
 
       if (parentContext.mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(parentContext).showSnackBar(
           SnackBar(
-            content: Text('Ошибка создания платежа: $e'),
+            content: Text('Ошибка: $msg'),
             backgroundColor: Theme.of(parentContext).colorScheme.error,
           ),
         );
