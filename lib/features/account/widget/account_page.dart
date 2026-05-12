@@ -130,7 +130,7 @@ class AccountPage extends HookConsumerWidget {
               FilledButton.icon(
                 onPressed: isLoading.value
                     ? null
-                    : () => _openTelegramLogin(context),
+                    : () => _showLoginFlow(context, api, isLoading, errorMsg),
                 icon: const Icon(FluentIcons.chat_24_regular),
                 label: const Text('Войти через Telegram'),
                 style: FilledButton.styleFrom(
@@ -165,11 +165,111 @@ class AccountPage extends HookConsumerWidget {
     );
   }
 
-  void _openTelegramLogin(BuildContext context) {
-    // Telegram OAuth is done via bot deep link for now.
-    // Phase 2 full implementation: WebView with Telegram Login Widget.
+  /// Two-step login flow:
+  /// 1. Open bot to get 6-digit code
+  /// 2. Enter code in dialog → verify via API
+  void _showLoginFlow(
+    BuildContext context,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+  ) {
+    // First open bot so user can get the code
     UriUtils.tryLaunch(
       Uri.parse('https://t.me/PSRouteBot?start=login'),
+    );
+
+    // Then show code entry dialog
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (context.mounted) {
+        _showCodeEntryDialog(context, api, isLoading, errorMsg);
+      }
+    });
+  }
+
+  void _showCodeEntryDialog(
+    BuildContext context,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+  ) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            bool isVerifying = false;
+            String? dialogError;
+
+            return AlertDialog(
+              title: const Text('Введите код'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Отправьте /login боту @PSRouteBot и введите полученный 6-значный код:',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const Gap(16),
+                  TextField(
+                    controller: codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      letterSpacing: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '000000',
+                      counterText: '',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 16,
+                      ),
+                    ),
+                    autofocus: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Отмена'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final code = codeController.text.trim();
+                    if (code.length != 6) return;
+
+                    isLoading.value = true;
+                    Navigator.of(dialogContext).pop();
+
+                    try {
+                      await api.verifyLoginCode(code);
+                      errorMsg.value = null;
+                      // Force rebuild — isAuthenticated is now true
+                    } catch (e) {
+                      errorMsg.value = e.toString().replaceFirst('Exception: ', '');
+                    } finally {
+                      isLoading.value = false;
+                    }
+                  },
+                  child: const Text('Войти'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

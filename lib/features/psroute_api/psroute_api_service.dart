@@ -123,6 +123,27 @@ class PSRouteApiService with InfraLogger {
     }
   }
 
+  /// Verify 6-digit login code from bot.
+  /// User sends /login in bot → gets code → enters in app.
+  Future<Map<String, dynamic>> verifyLoginCode(String code) async {
+    try {
+      final response = await _dio.post('/auth/verify-code', data: {'code': code});
+      final data = response.data as Map<String, dynamic>;
+      final token = data['token'] as String;
+      await _saveToken(token);
+      return data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        final msg = e.response?.data?['detail'] ?? 'Неверный код';
+        throw Exception(msg);
+      }
+      if (e.response?.statusCode == 404) {
+        throw Exception('Пользователь не найден. Начните с @PSRouteBot.');
+      }
+      throw Exception('Ошибка соединения. Попробуйте позже.');
+    }
+  }
+
   // ─── Phase 2: User ────────────────────────────────────────
 
   /// Current user profile and subscription status.
