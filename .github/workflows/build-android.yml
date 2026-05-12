@@ -53,13 +53,22 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Setup signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/psroute-upload.jks
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 secret is empty or not set!"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/psroute-upload.jks
+          echo "Keystore size: $(wc -c < android/psroute-upload.jks) bytes"
           echo "storeFile=$(pwd)/android/psroute-upload.jks" > android/key.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          cat android/key.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> android/key.properties
+          echo "keyPassword=$KEYSTORE_PASSWORD" >> android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+          echo "key.properties created with $(wc -l < android/key.properties) lines"
 
       - name: Install dependencies & prepare
         run: |
