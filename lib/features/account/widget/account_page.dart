@@ -325,7 +325,7 @@ class AccountPage extends HookConsumerWidget {
                               const Gap(12),
                               LinearProgressIndicator(
                                 value: trafficPercent.clamp(0.0, 1.0),
-                                backgroundColor: theme.colorScheme.surfaceVariant,
+                                backgroundColor: theme.colorScheme.surfaceContainerHighest,
                               ),
                               const Gap(8),
                               Text(

@@ -141,7 +141,7 @@ class AIProxyPage extends HookConsumerWidget {
                           decoration: BoxDecoration(
                             color: isUser
                                 ? theme.colorScheme.primaryContainer
-                                : theme.colorScheme.surfaceVariant,
+                                : theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: isUser
@@ -239,6 +239,9 @@ class AIProxyPage extends HookConsumerWidget {
       final response = await api.aiChat(
         model: selectedModel.value,
         message: text,
+        history: messages.value.length > 1
+            ? messages.value.sublist(0, messages.value.length - 1)
+            : null,
       );
       final choices = response['choices'] as List?;
       final reply = choices?.firstOrNull;

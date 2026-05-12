@@ -190,15 +190,17 @@ class PSRouteApiService with InfraLogger {
     return response.data as Map<String, dynamic>;
   }
 
-  /// Send chat message to AI proxy.
+  /// Send chat message to AI proxy with conversation history.
   Future<Map<String, dynamic>> aiChat({
     required String model,
     required String message,
+    List<Map<String, String>>? history,
     String? conversationId,
   }) async {
     final response = await _dio.post('/ai/chat', data: {
       'model': model,
       'message': message,
+      if (history != null && history.isNotEmpty) 'history': history,
       if (conversationId != null) 'conversation_id': conversationId,
     });
     return response.data as Map<String, dynamic>;

@@ -25,14 +25,14 @@ class OnboardingPage extends HookConsumerWidget {
         icon: Icons.touch_app_rounded,
         iconColor: theme.colorScheme.tertiary,
         title: 'Как это работает',
-        subtitle: 'Установите → Нажмите кнопку → Пользуйтесь свободным интернетом',
+        subtitle: 'Установите → Нажмите кнопку →\nПользуйтесь свободным интернетом',
       ),
       _OnboardingStep(
-        icon: Icons.vpn_lock_rounded,
+        icon: Icons.lock_rounded,
         iconColor: theme.colorScheme.secondary,
-        title: 'VPN подключение',
-        subtitle: 'Приложение запросит разрешение на VPN-подключение.\n'
-            'Это нужно для безопасного туннелирования трафика.',
+        title: 'Безопасное подключение',
+        subtitle: 'Приложение запросит разрешение на защищённое подключение.\n'
+            'Это нужно для безопасной передачи данных.',
       ),
     ];
 
@@ -64,7 +64,7 @@ class OnboardingPage extends HookConsumerWidget {
                     decoration: BoxDecoration(
                       color: currentPage.value == i
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.surfaceVariant,
+                          : theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
