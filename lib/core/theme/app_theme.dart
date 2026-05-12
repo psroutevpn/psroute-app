@@ -9,7 +9,7 @@ class AppTheme {
   final String fontFamily;
 
   ThemeData lightTheme(ColorScheme? lightColorScheme) {
-    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFF293CA0));
+    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: const Color(0xFFA855F7));
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
