@@ -86,7 +86,7 @@ android {
             //noinspection ChromeOsAbiSupport
             include "x86_64", "armeabi-v7a", "arm64-v8a"
 
-            universalApk true
+            universalApk false
         }
     }
 
@@ -108,9 +108,6 @@ android {
             } else {
                 signingConfig signingConfigs.debug
             }
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             ndk {
                 //noinspection ChromeOsAbiSupport
                 abiFilters "x86_64", "armeabi-v7a", "arm64-v8a"
