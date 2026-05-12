@@ -32,12 +32,12 @@ abstract class ConfigOptions {
 
   static final region = PreferencesNotifier.create<Region, String>(
     "region",
-    Region.other,
+    Region.ru,
     mapFrom: Region.values.byName,
     mapTo: (value) => value.name,
   );
   static final useXrayCoreWhenPossible = PreferencesNotifier.create<bool, bool>("use-xray-core-when-possible", false);
-  static final blockAds = PreferencesNotifier.create<bool, bool>("block-ads", false);
+  static final blockAds = PreferencesNotifier.create<bool, bool>("block-ads", true);
   static final logLevel = PreferencesNotifier.create<LogLevel, String>(
     "log-level",
     LogLevel.warn,
@@ -92,7 +92,12 @@ abstract class ConfigOptions {
       "4.4.2.2",
       "8.8.8.8",
     ]),
-    defaultValueFunction: (ref) => ref.read(region) == Region.cn ? "223.5.5.5" : "1.1.1.1",
+    defaultValueFunction: (ref) {
+      final r = ref.read(region);
+      if (r == Region.cn) return "223.5.5.5";
+      if (r == Region.ru) return "udp://77.88.8.8"; // Yandex DNS for direct Russian traffic
+      return "1.1.1.1";
+    },
     validator: (value) => value.isNotBlank,
   );
 
@@ -169,7 +174,7 @@ abstract class ConfigOptions {
     validator: (value) => isPort(value.toString()),
   );
 
-  static final bypassLan = PreferencesNotifier.create<bool, bool>("bypass-lan", false);
+  static final bypassLan = PreferencesNotifier.create<bool, bool>("bypass-lan", true);
 
   static final allowConnectionFromLan = PreferencesNotifier.create<bool, bool>("allow-connection-from-lan", false);
 
@@ -365,46 +370,55 @@ abstract class ConfigOptions {
   };
 
   static final singboxConfigOptions = Provider<SingboxConfigOption>((ref) {
-    // final region = ref.watch(Preferences.region);
-    final rules = <SingboxRule>[];
-    // final rules = switch (region) {
-    //   Region.ir => [
-    //       const SingboxRule(
-    //         domains: "domain:.ir,geosite:ir",
-    //         ip: "geoip:ir",
-    //         outbound: RuleOutbound.bypass,
-    //       ),
-    //     ],
-    //   Region.cn => [
-    //       const SingboxRule(
-    //         domains: "domain:.cn,geosite:cn",
-    //         ip: "geoip:cn",
-    //         outbound: RuleOutbound.bypass,
-    //       ),
-    //     ],
-    //   Region.ru => [
-    //       const SingboxRule(
-    //         domains: "domain:.ru",
-    //         ip: "geoip:ru",
-    //         outbound: RuleOutbound.bypass,
-    //       ),
-    //     ],
-    //   Region.af => [
-    //       const SingboxRule(
-    //         domains: "domain:.af,geosite:af",
-    //         ip: "geoip:af",
-    //         outbound: RuleOutbound.bypass,
-    //       ),
-    //     ],
-    //   Region.id => [
-    //       const SingboxRule(
-    //         domains: "domain:.id,geosite:id",
-    //         ip: "geoip:id",
-    //         outbound: RuleOutbound.bypass,
-    //       ),
-    //     ],
-    //   _ => <SingboxRule>[],
-    // };
+    final currentRegion = ref.watch(region);
+    final rules = <SingboxRule>[
+      // Block QUIC (UDP 443) on client — prevents issues with Instagram, Telegram
+      // that try QUIC first but it gets dropped by server. Forces TCP fallback.
+      const SingboxRule(
+        port: "443",
+        network: RuleNetwork.udp,
+        outbound: RuleOutbound.block,
+      ),
+      // Region-specific bypass rules
+      ...switch (currentRegion) {
+        Region.ir => [
+            const SingboxRule(
+              domains: "domain:.ir,geosite:ir",
+              ip: "geoip:ir",
+              outbound: RuleOutbound.bypass,
+            ),
+          ],
+        Region.cn => [
+            const SingboxRule(
+              domains: "domain:.cn,geosite:cn",
+              ip: "geoip:cn",
+              outbound: RuleOutbound.bypass,
+            ),
+          ],
+        Region.ru => [
+            const SingboxRule(
+              domains: "domain:.ru,geosite:category-ru",
+              ip: "geoip:ru",
+              outbound: RuleOutbound.bypass,
+            ),
+          ],
+        Region.af => [
+            const SingboxRule(
+              domains: "domain:.af,geosite:af",
+              ip: "geoip:af",
+              outbound: RuleOutbound.bypass,
+            ),
+          ],
+        Region.id => [
+            const SingboxRule(
+              domains: "domain:.id,geosite:id",
+              ip: "geoip:id",
+              outbound: RuleOutbound.bypass,
+            ),
+          ],
+        _ => <SingboxRule>[],
+      },
+    ];
 
     final mode = ref.watch(serviceMode);
     // final reg = ref.watch(Preferences.region.notifier).raw();
