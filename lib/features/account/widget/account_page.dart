@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/features/psroute_api/psroute_api_service.dart';
+import 'package:hiddify/features/referral/widget/referral_page.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -362,9 +363,10 @@ class AccountPage extends HookConsumerWidget {
                   title: const Text('Реферальная программа'),
                   trailing: const Icon(FluentIcons.chevron_right_24_regular),
                   onTap: () {
-                    // TODO: Phase 3 referral screen
-                    UriUtils.tryLaunch(
-                      Uri.parse('https://t.me/PSRouteBot?start=referral'),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ReferralPage(),
+                      ),
                     );
                   },
                 ),
@@ -508,7 +510,7 @@ class PlanSelectionPage extends HookConsumerWidget {
 
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -525,54 +527,27 @@ class PlanSelectionPage extends HookConsumerWidget {
                 title: const Text('Карта / СБП'),
                 subtitle: const Text('Через LAVA'),
                 trailing: const Icon(FluentIcons.chevron_right_24_regular),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final result = await api.createPayment(
-                    plan: planId,
-                    method: 'lava',
-                  );
-                  if (result['redirect_to_bot'] == true) {
-                    await UriUtils.tryLaunch(
-                      Uri.parse(result['bot_url'] as String),
-                    );
-                  }
-                },
+                onTap: () => _processPayment(
+                  context, sheetContext, api, planId, 'lava',
+                ),
               ),
               ListTile(
                 leading: const Icon(FluentIcons.currency_dollar_euro_24_regular),
                 title: const Text('Криптовалюта'),
                 subtitle: const Text('USDT, TON, BTC, ETH'),
                 trailing: const Icon(FluentIcons.chevron_right_24_regular),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final result = await api.createPayment(
-                    plan: planId,
-                    method: 'cryptocloud',
-                  );
-                  if (result['redirect_to_bot'] == true) {
-                    await UriUtils.tryLaunch(
-                      Uri.parse(result['bot_url'] as String),
-                    );
-                  }
-                },
+                onTap: () => _processPayment(
+                  context, sheetContext, api, planId, 'cryptocloud',
+                ),
               ),
               ListTile(
                 leading: const Icon(FluentIcons.star_24_regular),
                 title: const Text('Telegram Stars'),
                 subtitle: Text('${plan['price_stars']} Stars'),
                 trailing: const Icon(FluentIcons.chevron_right_24_regular),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final result = await api.createPayment(
-                    plan: planId,
-                    method: 'stars',
-                  );
-                  if (result['redirect_to_bot'] == true) {
-                    await UriUtils.tryLaunch(
-                      Uri.parse(result['bot_url'] as String),
-                    );
-                  }
-                },
+                onTap: () => _processPayment(
+                  context, sheetContext, api, planId, 'stars',
+                ),
               ),
               const Gap(8),
             ],
@@ -580,5 +555,59 @@ class PlanSelectionPage extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _processPayment(
+    BuildContext parentContext,
+    BuildContext sheetContext,
+    PSRouteApiService api,
+    String planId,
+    String method,
+  ) async {
+    Navigator.pop(sheetContext);
+
+    // Show loading indicator
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final result = await api.createPayment(
+        plan: planId,
+        method: method,
+      );
+
+      // Close loading
+      if (parentContext.mounted) Navigator.pop(parentContext);
+
+      // Stars → redirect to Telegram bot
+      if (result['redirect_to_bot'] == true) {
+        final botUrl = result['bot_url'] as String?;
+        if (botUrl != null && botUrl.isNotEmpty) {
+          await UriUtils.tryLaunch(Uri.parse(botUrl));
+        }
+        return;
+      }
+
+      // LAVA / CryptoCloud → open payment URL in browser
+      final paymentUrl = result['payment_url'] as String?;
+      if (paymentUrl != null && paymentUrl.isNotEmpty) {
+        await UriUtils.tryLaunch(Uri.parse(paymentUrl));
+      }
+    } catch (e) {
+      // Close loading if still showing
+      if (parentContext.mounted) Navigator.pop(parentContext);
+
+      if (parentContext.mounted) {
+        ScaffoldMessenger.of(parentContext).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка создания платежа: $e'),
+            backgroundColor: Theme.of(parentContext).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }
