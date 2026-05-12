@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
@@ -31,28 +32,7 @@ class SettingsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = ref.watch(translationsProvider).requireValue;
-    // final scrollController = useScrollController();
-
-    // useMemoized(
-    //   () {
-    //     if (section != null) {
-    //       WidgetsBinding.instance.addPostFrameCallback(
-    //         (_) {
-    //           final box = section!.key.currentContext?.findRenderObject() as RenderBox?;
-
-    //           final offset = box?.localToGlobal(Offset.zero);
-    //           if (offset == null) return;
-    //           final height = scrollController.offset + offset.dy - MediaQueryData.fromView(View.of(context)).padding.top - kToolbarHeight;
-    //           scrollController.animateTo(
-    //             height,
-    //             duration: const Duration(milliseconds: 500),
-    //             curve: Curves.decelerate,
-    //           );
-    //         },
-    //       );
-    //     }
-    //   },
-    // );
+    final showAdvanced = useState(false);
 
     return Scaffold(
       appBar: AppBar(
@@ -140,58 +120,73 @@ class SettingsPage extends HookConsumerWidget {
       ),
       body: ListView(
         children: [
-          // TipCard(message: t.settings.experimentalMsg),
+          // --- Basic settings (always visible) ---
           SettingsSection(
             title: t.pages.settings.general.title,
             icon: Icons.layers_rounded,
             namedLocation: context.namedLocation('general'),
           ),
-          SettingsSection(
-            title: t.pages.settings.routing.title,
-            icon: Icons.route_rounded,
-            namedLocation: context.namedLocation('routeOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.dns.title,
-            icon: Icons.dns_rounded,
-            namedLocation: context.namedLocation('dnsOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.inbound.title,
-            icon: Icons.input_rounded,
-            namedLocation: context.namedLocation('inboundOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.tlsTricks.title,
-            icon: Icons.content_cut_rounded,
-            namedLocation: context.namedLocation('tlsTricks'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.warp.title,
-            icon: Icons.cloud_rounded,
-            namedLocation: context.namedLocation('warpOptions'),
-          ),
-          if (PlatformUtils.isIOS)
-            Material(
-              child: ListTile(
-                title: Text(t.pages.settings.resetTunnel),
-                leading: const Icon(Icons.autorenew_rounded),
-                onTap: () async {
-                  await ref.read(resetTunnelNotifierProvider.notifier).run();
-                },
-              ),
-            ),
           if (Breakpoint(context).isMobile()) ...[
-            SettingsSection(
-              title: t.pages.logs.title,
-              icon: Icons.description_rounded,
-              namedLocation: context.namedLocation('logs'),
-            ),
             SettingsSection(
               title: t.pages.about.title,
               icon: Icons.info_rounded,
               namedLocation: context.namedLocation('about'),
             ),
+          ],
+
+          // --- Advanced settings toggle ---
+          const Divider(),
+          SwitchListTile(
+            secondary: const Icon(Icons.tune_rounded),
+            title: const Text("Расширенные настройки"),
+            subtitle: const Text("Routing, DNS, TLS, WARP"),
+            value: showAdvanced.value,
+            onChanged: (v) => showAdvanced.value = v,
+          ),
+
+          // --- Advanced sections (hidden by default) ---
+          if (showAdvanced.value) ...[
+            SettingsSection(
+              title: t.pages.settings.routing.title,
+              icon: Icons.route_rounded,
+              namedLocation: context.namedLocation('routeOptions'),
+            ),
+            SettingsSection(
+              title: t.pages.settings.dns.title,
+              icon: Icons.dns_rounded,
+              namedLocation: context.namedLocation('dnsOptions'),
+            ),
+            SettingsSection(
+              title: t.pages.settings.inbound.title,
+              icon: Icons.input_rounded,
+              namedLocation: context.namedLocation('inboundOptions'),
+            ),
+            SettingsSection(
+              title: t.pages.settings.tlsTricks.title,
+              icon: Icons.content_cut_rounded,
+              namedLocation: context.namedLocation('tlsTricks'),
+            ),
+            SettingsSection(
+              title: t.pages.settings.warp.title,
+              icon: Icons.cloud_rounded,
+              namedLocation: context.namedLocation('warpOptions'),
+            ),
+            if (PlatformUtils.isIOS)
+              Material(
+                child: ListTile(
+                  title: Text(t.pages.settings.resetTunnel),
+                  leading: const Icon(Icons.autorenew_rounded),
+                  onTap: () async {
+                    await ref.read(resetTunnelNotifierProvider.notifier).run();
+                  },
+                ),
+              ),
+            if (Breakpoint(context).isMobile())
+              SettingsSection(
+                title: t.pages.logs.title,
+                icon: Icons.description_rounded,
+                namedLocation: context.namedLocation('logs'),
+              ),
           ],
         ],
       ),
