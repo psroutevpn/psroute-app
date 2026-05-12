@@ -108,19 +108,30 @@ class AboutPage extends HookConsumerWidget {
               ...conditionalTiles,
               if (conditionalTiles.isNotEmpty) const Divider(),
               ListTile(
-                title: Text(t.pages.about.sourceCode),
+                leading: const Icon(FluentIcons.globe_24_regular),
+                title: const Text("Сайт PS Route"),
                 trailing: const Icon(FluentIcons.open_24_regular),
                 onTap: () async {
-                  await UriUtils.tryLaunch(Uri.parse(Constants.githubUrl));
+                  await UriUtils.tryLaunch(Uri.parse("https://psroute.xyz"));
                 },
               ),
               ListTile(
-                title: Text(t.pages.about.telegramChannel),
+                leading: const Icon(FluentIcons.chat_24_regular),
+                title: const Text("Поддержка в Telegram"),
                 trailing: const Icon(FluentIcons.open_24_regular),
                 onTap: () async {
                   await UriUtils.tryLaunch(Uri.parse(Constants.telegramChannelUrl));
                 },
               ),
+              ListTile(
+                leading: const Icon(FluentIcons.shopping_bag_24_regular),
+                title: const Text("Купить подписку"),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://t.me/PSRouteBot"));
+                },
+              ),
+              const Divider(),
               ListTile(
                 title: Text(t.pages.about.termsAndConditions),
                 trailing: const Icon(FluentIcons.open_24_regular),
@@ -133,6 +144,13 @@ class AboutPage extends HookConsumerWidget {
                 trailing: const Icon(FluentIcons.open_24_regular),
                 onTap: () async {
                   await UriUtils.tryLaunch(Uri.parse(Constants.privacyPolicyUrl));
+                },
+              ),
+              ListTile(
+                title: Text(t.pages.about.sourceCode),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse(Constants.githubUrl));
                 },
               ),
             ]),
