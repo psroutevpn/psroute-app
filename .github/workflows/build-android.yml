@@ -55,12 +55,11 @@ jobs:
       - name: Setup signing key
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/psroute-upload.jks
-          cat > android/key.properties << PROPS
-          storeFile=$(pwd)/android/psroute-upload.jks
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          PROPS
+          echo "storeFile=$(pwd)/android/psroute-upload.jks" > android/key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          cat android/key.properties
 
       - name: Install dependencies & prepare
         run: |
