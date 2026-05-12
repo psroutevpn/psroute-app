@@ -13,6 +13,8 @@ abstract class Constants {
   static const termsAndConditionsUrl = "https://psroute.xyz/terms.html";
   static const cfWarpPrivacyPolicy = "https://www.cloudflare.com/application/privacypolicy/";
   static const cfWarpTermsOfService = "https://www.cloudflare.com/application/terms/";
+  // PSRoute default subscription — auto-imported on first launch
+  static const defaultSubscriptionUrl = "https://sub.psroute.xyz:2083/Xk9mTqL2vBnR8wYp/";
 }
 
 const kAnimationDuration = Duration(milliseconds: 250);

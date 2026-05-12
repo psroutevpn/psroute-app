@@ -18,6 +18,7 @@ import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/features/app/widget/app.dart';
 import 'package:hiddify/features/auto_start/notifier/auto_start_notifier.dart';
 
+import 'package:hiddify/core/model/constants.dart';
 import 'package:hiddify/features/log/data/log_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
@@ -83,6 +84,16 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
   Logger.bootstrap.info(appInfo.format());
 
   await _init("profile repository", () => container.read(profileRepositoryProvider.future));
+
+  // PSRoute: auto-import default subscription if no profiles exist (first launch)
+  await _safeInit("psroute default profile", () async {
+    final profileRepo = container.read(profileRepositoryProvider).requireValue;
+    final hasProfiles = await container.read(profileDataSourceProvider).watchProfilesCount().first;
+    if (hasProfiles == 0) {
+      Logger.bootstrap.info("No profiles found, importing PSRoute default subscription");
+      await profileRepo.upsertRemote(Constants.defaultSubscriptionUrl).run();
+    }
+  }, timeout: 10000);
 
   await _init("translations", () => container.read(translationsProvider.future));
 
