@@ -74,96 +74,60 @@ class IntroPage extends HookConsumerWidget with PresLogger {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // PSRoute logo
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final width = constraints.maxWidth > IntroConst.maxwidth
                           ? IntroConst.maxwidth
                           : constraints.maxWidth;
-                      final size = width * 0.4;
-                      return Assets.images.logo.svg(width: size, height: size);
+                      final size = width * 0.35;
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(size * 0.18),
+                        child: Image.asset('assets/images/logo.png', width: size, height: size),
+                      );
                     },
                   ),
                   const Gap(16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      t.intro.banner,
-                      style: theme.textTheme.bodyLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Gap(24),
-                  const LocalePrefTile(),
-                  ChoicePreferenceWidget(
-                    selected: ref.watch(ConfigOptions.region),
-                    preferences: ref.watch(ConfigOptions.region.notifier),
-                    choices: Region.values,
-                    title: t.pages.settings.routing.region,
-                    showFlag: true,
-                    icon: Icons.place_rounded,
-                    presentChoice: (value) => value.present(t),
-                    onChanged: (val) async {
-                      await ref.read(ConfigOptions.directDnsAddress.notifier).reset();
-                    },
-                  ),
-                  const EnableAnalyticsPrefTile(),
-                  const Gap(24),
-                  Focus(
-                    focusNode: focusNodes[IntroConst.termsAndConditionsKey],
-                    onKeyEvent: (node, event) => _handleKeyEvent(event, IntroConst.termsAndConditionsKey),
-                    child: Text.rich(
-                      t.intro.termsAndPolicyCaution(
-                        tap: (text) => TextSpan(
-                          text: text,
-                          style: TextStyle(
-                            color: focusStates[IntroConst.termsAndConditionsKey]!.value ? Colors.green : Colors.blue,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await UriUtils.tryLaunch(Uri.parse(Constants.termsAndConditionsUrl));
-                            },
-                        ),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
+                  Text(
+                    "PS Route",
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const Gap(8),
-                  Focus(
-                    focusNode: focusNodes[IntroConst.githubKey],
-                    onKeyEvent: (node, event) => _handleKeyEvent(event, IntroConst.githubKey),
-                    child: Text.rich(
-                      t.intro.info(
-                        tap_source: (text) => TextSpan(
-                          text: text,
-                          style: TextStyle(
-                            color: focusStates[IntroConst.githubKey]!.value ? Colors.green : Colors.blue,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await UriUtils.tryLaunch(Uri.parse(Constants.githubUrl));
-                            },
-                        ),
-                        tap_license: (text) => TextSpan(
-                          text: text,
-                          style: TextStyle(
-                            color: focusStates[IntroConst.githubKey]!.value ? Colors.green : Colors.blue,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await UriUtils.tryLaunch(Uri.parse(Constants.licenseUrl));
-                            },
-                        ),
-                      ),
-                      style: theme.textTheme.bodySmall,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      "Быстрый и надёжный VPN\nдля вашей приватности",
+                      style: theme.textTheme.bodyLarge?.copyWith(color: theme.textTheme.bodySmall?.color),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  // only for managing license node focus
-                  Focus(
-                    focusNode: focusNodes[IntroConst.licenseKey],
-                    onKeyEvent: (node, event) => _handleKeyEvent(event, IntroConst.licenseKey),
-                    child: const Gap(88),
+                  const Gap(32),
+                  const LocalePrefTile(),
+                  const Gap(24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Focus(
+                      focusNode: focusNodes[IntroConst.termsAndConditionsKey],
+                      onKeyEvent: (node, event) => _handleKeyEvent(event, IntroConst.termsAndConditionsKey),
+                      child: Text.rich(
+                        t.intro.termsAndPolicyCaution(
+                          tap: (text) => TextSpan(
+                            text: text,
+                            style: TextStyle(
+                              color: focusStates[IntroConst.termsAndConditionsKey]!.value ? Colors.green : Colors.blue,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                await UriUtils.tryLaunch(Uri.parse(Constants.termsAndConditionsUrl));
+                              },
+                          ),
+                        ),
+                        style: theme.textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
+                  const Gap(88),
                 ],
               ),
             ),
