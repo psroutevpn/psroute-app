@@ -1,4 +1,4 @@
-package com.hiddify.hiddify;
+package xyz.psroute.app;
 
 interface IServiceCallback {
   void onServiceStatusChanged(int status);

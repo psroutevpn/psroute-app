@@ -167,7 +167,7 @@ class BoxService(
                         it.basePath = Settings.baseDir
                         it.workingDir = Settings.workingDir
                         it.tempDir = Settings.tempDir
-                        it.fixAndroidStack = com.hiddify.hiddify.bg.Bugs.fixAndroidStack
+                        it.fixAndroidStack = Bugs.fixAndroidStack
                         it.mode=4L//mode.toLong()
                         it.listen= "127.0.0.1:${Settings.grpcServiceModePort}"
                         it.secret=""

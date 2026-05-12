@@ -1,6 +1,6 @@
-package com.hiddify.hiddify;
+package xyz.psroute.app;
 
-import com.hiddify.hiddify.IServiceCallback;
+import xyz.psroute.app.IServiceCallback;
 
 interface IService {
   int getStatus();
