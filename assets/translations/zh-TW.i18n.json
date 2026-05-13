@@ -88,7 +88,7 @@
   "intro": {
     "banner": "暢享無限制網路的所需一切",
     "termsAndPolicyCaution(rich)": "繼續即表示您同意 ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "由 Hiddify 以 ❤️ 製作 - ${tap_source(開源)} (${tap_license(授權)})"
+    "info(rich)": "由 PS Route 以 ❤️ 製作 - ${tap_source(開源)} (${tap_license(授權)})"
   },
   "pages": {
     "home": {
@@ -558,10 +558,10 @@
       "disable": "不再顯示"
     },
     "noActiveProfile": {
-      "title": "選擇一個設定檔",
-      "msg": "讓我們從新增一個包含您 VPN 連線詳細資訊的設定檔開始。\n\n還沒有 VPN 伺服器？別擔心，按照下面的教學，您可以快速免費地設定一個。",
+      "title": "無活躍連線",
+      "msg": "要連線，請前往帳戶分頁，使用您的 PS Route 帳戶登入。VPN 設定檔將自動設定。",
       "helpBtn": {
-        "label": "告訴我如何操作",
+        "label": "好的",
         "url": "https://psroute.xyz"
       }
     },

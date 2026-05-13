@@ -94,7 +94,7 @@
   "intro": {
     "banner": "كل ما تحتاجه لإنترنت بلا قيود",
     "termsAndPolicyCaution(rich)": "بالاستمرار، أنت توافق على ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "صُنع بـ ❤️ بواسطة Hiddify - ${tap_source(مفتوح المصدر)} (${tap_license(الرخصة)})"
+    "info(rich)": "صُنع بـ ❤️ بواسطة PS Route - ${tap_source(مفتوح المصدر)} (${tap_license(الرخصة)})"
   },
   "pages": {
     "home": {
@@ -564,10 +564,10 @@
       "disable": "لا تعرض مرة أخرى"
     },
     "noActiveProfile": {
-      "title": "اختر ملفًا شخصيًا",
-      "msg": "للبدء، قم بإضافة ملف اتصال يحتوي على تفاصيل اتصال VPN الخاصة بك.\n\nأليس لديك خادم VPN بعد؟ لا تقلق، اتبع الدليل أدناه لإعداد واحد بسرعة ومجانًا.",
+      "title": "لا يوجد اتصال نشط",
+      "msg": "للاتصال، انتقل إلى علامة التبويب الحساب وسجّل الدخول بحساب PS Route الخاص بك. سيتم إعداد ملف VPN تلقائيًا.",
       "helpBtn": {
-        "label": "أرني كيف",
+        "label": "حسنًا",
         "url": "https://psroute.xyz"
       }
     },

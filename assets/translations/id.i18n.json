@@ -88,7 +88,7 @@
   "intro": {
     "banner": "Semua yang Anda butuhkan untuk internet tanpa batasan",
     "termsAndPolicyCaution(rich)": "Dengan melanjutkan, Anda menyetujui ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Dibuat dengan ❤️ oleh Hiddify - ${tap_source(Sumber Terbuka)} (${tap_license(Lisensi)})"
+    "info(rich)": "Dibuat dengan ❤️ oleh PS Route - ${tap_source(Sumber Terbuka)} (${tap_license(Lisensi)})"
   },
   "pages": {
     "home": {
@@ -558,10 +558,10 @@
       "disable": "Jangan tampilkan lagi"
     },
     "noActiveProfile": {
-      "title": "Pilih profil",
-      "msg": "Mari kita mulai dengan menambahkan profil koneksi yang berisi detail koneksi VPN Anda.\n\nBelum punya server VPN? Jangan khawatir, ikuti tutorial di bawah ini untuk mengaturnya dengan cepat dan gratis.",
+      "title": "Tidak ada koneksi aktif",
+      "msg": "Untuk terhubung, buka tab Akun dan masuk dengan akun PS Route Anda. Profil VPN Anda akan diatur secara otomatis.",
       "helpBtn": {
-        "label": "Tunjukkan caranya",
+        "label": "OK",
         "url": "https://psroute.xyz"
       }
     },

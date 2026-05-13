@@ -92,7 +92,7 @@
   "intro": {
     "banner": "Все, что вам нужно для интернета без ограничений",
     "termsAndPolicyCaution(rich)": "Продолжая, вы соглашаетесь с ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Сделано с ❤️ Hiddify - ${tap_source(Открытый исходный код)} (${tap_license(Лицензия)})"
+    "info(rich)": "Сделано с ❤️ PS Route - ${tap_source(Открытый исходный код)} (${tap_license(Лицензия)})"
   },
   "pages": {
     "home": {
@@ -563,7 +563,7 @@
     },
     "noActiveProfile": {
       "title": "Нет активного подключения",
-      "msg": "Перейдите на вкладку «Аккаунт» и войдите в свой аккаунт PS Route. VPN-профиль настроится автоматически.",
+      "msg": "Перейдите на вкладку Аккаунт и войдите в свой аккаунт PS Route. VPN-профиль настроится автоматически.",
       "helpBtn": {
         "label": "OK",
         "url": "https://psroute.xyz"

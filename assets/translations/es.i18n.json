@@ -88,7 +88,7 @@
   "intro": {
     "banner": "Todo lo que necesitas para un internet sin restricciones",
     "termsAndPolicyCaution(rich)": "Al continuar, aceptas los ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Hecho con ❤️ por Hiddify - ${tap_source(Código Abierto)} (${tap_license(Licencia)})"
+    "info(rich)": "Hecho con ❤️ por PS Route - ${tap_source(Código Abierto)} (${tap_license(Licencia)})"
   },
   "pages": {
     "home": {
@@ -558,10 +558,10 @@
       "disable": "No volver a mostrar"
     },
     "noActiveProfile": {
-      "title": "Elige un perfil",
-      "msg": "Para empezar, añade un perfil de conexión que incluya los detalles de tu conexión VPN.\n\n¿Aún no tienes un servidor VPN? No te preocupes, sigue el tutorial a continuación para configurar uno rápidamente y de forma gratuita.",
+      "title": "Sin conexión activa",
+      "msg": "Para conectarte, ve a la pestaña Cuenta e inicia sesión con tu cuenta PS Route. Tu perfil VPN se configurará automáticamente.",
       "helpBtn": {
-        "label": "Muéstrame cómo",
+        "label": "OK",
         "url": "https://psroute.xyz"
       }
     },
