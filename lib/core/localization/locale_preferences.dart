@@ -11,10 +11,9 @@ class LocalePreferences extends _$LocalePreferences with AppLogger {
   AppLocale build() {
     final persisted = ref.watch(sharedPreferencesProvider).requireValue.getString("locale");
     if (persisted == null) {
-      // Default to Russian for PS Route (Russian market app).
-      // If device locale matches a supported locale, use that instead.
-      final deviceLocale = AppLocaleUtils.findDeviceLocale();
-      return deviceLocale == AppLocale.en ? AppLocale.ru : deviceLocale;
+      // PS Route: Russian market app — always default to Russian.
+      // User can change language manually in intro or settings.
+      return AppLocale.ru;
     }
     // keep backward compatibility with chinese after changing zh to zh_CN
     if (persisted == "zh") {

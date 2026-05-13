@@ -559,11 +559,11 @@
       "disable": "Don't show again"
     },
     "noActiveProfile": {
-      "title": "Choose a profile",
-      "msg": "Let's get started by adding a connection profile that includes your VPN connection details.\n\nDon’t have a VPN server yet? No worries—just follow the tutorial below to set one up quickly and for free.",
+      "title": "No active connection",
+      "msg": "To connect, go to the Account tab and log in with your PS Route account. Your VPN profile will be set up automatically.",
       "helpBtn": {
-        "label": "Show me how",
-        "url": "https://hiddify.com/manager/"
+        "label": "OK",
+        "url": "https://psroute.xyz"
       }
     },
     "unknownDomainsWarning": {
