@@ -292,20 +292,20 @@ class AccountPage extends HookConsumerWidget {
                               Navigator.of(dialogContext).pop();
                             }
 
+                            // Trigger rebuild: set loading, fetch profile, then unload
+                            // This replaces the broken isLoading=true/false sync pair
+                            isLoading.value = true;
+                            await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+
                             // Auto-import subscription URL into VPN core
                             try {
-                              final sub = await api.getSubscription();
-                              final subUrl = sub['subscription_url'] as String?;
+                              final subUrl = subscription.value?['subscription_url'] as String?;
                               if (subUrl != null && subUrl.isNotEmpty) {
                                 ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
                               }
                             } catch (_) {
                               // Non-fatal: user can add profile manually later
                             }
-
-                            // Force rebuild — isAuthenticated is now true
-                            isLoading.value = true;
-                            isLoading.value = false;
                           } catch (e) {
                             final msg = e.toString().replaceFirst('Exception: ', '');
                             setDialogState(() {
