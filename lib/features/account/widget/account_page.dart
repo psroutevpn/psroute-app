@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:hiddify/features/profile/notifier/profile_notifier.dart';
 import 'package:hiddify/features/psroute_api/psroute_api_service.dart';
 import 'package:hiddify/features/referral/widget/referral_page.dart';
 import 'package:hiddify/utils/utils.dart';
@@ -142,7 +143,7 @@ class AccountPage extends HookConsumerWidget {
               FilledButton.icon(
                 onPressed: isLoading.value
                     ? null
-                    : () => _showLoginFlow(context, api, isLoading, errorMsg),
+                    : () => _showLoginFlow(context, ref, api, isLoading, errorMsg),
                 icon: const Icon(FluentIcons.chat_24_regular),
                 label: const Text('Войти через Telegram'),
                 style: FilledButton.styleFrom(
@@ -182,6 +183,7 @@ class AccountPage extends HookConsumerWidget {
   /// 2. Enter code in dialog → verify via API
   void _showLoginFlow(
     BuildContext context,
+    WidgetRef ref,
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
@@ -194,13 +196,14 @@ class AccountPage extends HookConsumerWidget {
     // Then show code entry dialog
     Future.delayed(const Duration(milliseconds: 500), () {
       if (context.mounted) {
-        _showCodeEntryDialog(context, api, isLoading, errorMsg);
+        _showCodeEntryDialog(context, ref, api, isLoading, errorMsg);
       }
     });
   }
 
   void _showCodeEntryDialog(
     BuildContext context,
+    WidgetRef ref,
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
@@ -287,6 +290,18 @@ class AccountPage extends HookConsumerWidget {
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
                             }
+
+                            // Auto-import subscription URL into VPN core
+                            try {
+                              final sub = await api.getSubscription();
+                              final subUrl = sub['subscription_url'] as String?;
+                              if (subUrl != null && subUrl.isNotEmpty) {
+                                ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+                              }
+                            } catch (_) {
+                              // Non-fatal: user can add profile manually later
+                            }
+
                             // Force rebuild — isAuthenticated is now true
                             isLoading.value = true;
                             isLoading.value = false;
