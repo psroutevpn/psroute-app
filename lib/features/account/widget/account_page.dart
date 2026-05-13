@@ -43,7 +43,7 @@ class AccountPage extends HookConsumerWidget {
     }
 
     if (!api.isAuthenticated) {
-      return _buildLoggedOutState(context, theme, ref, api, isLoading, errorMsg);
+      return _buildLoggedOutState(context, theme, ref, api, isLoading, errorMsg, userProfile, subscription);
     }
 
     if (isLoading.value) {
@@ -114,6 +114,8 @@ class AccountPage extends HookConsumerWidget {
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
   ) {
     return Scaffold(
       body: Center(
@@ -144,7 +146,7 @@ class AccountPage extends HookConsumerWidget {
               FilledButton.icon(
                 onPressed: isLoading.value
                     ? null
-                    : () => _showLoginFlow(context, ref, api, isLoading, errorMsg),
+                    : () => _showLoginFlow(context, ref, api, isLoading, errorMsg, userProfile, subscription),
                 icon: const Icon(FluentIcons.chat_24_regular),
                 label: const Text('Войти через Telegram'),
                 style: FilledButton.styleFrom(
@@ -188,6 +190,8 @@ class AccountPage extends HookConsumerWidget {
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
   ) {
     // First open bot so user can get the code
     UriUtils.tryLaunch(
@@ -197,7 +201,7 @@ class AccountPage extends HookConsumerWidget {
     // Then show code entry dialog
     Future.delayed(const Duration(milliseconds: 500), () {
       if (context.mounted) {
-        _showCodeEntryDialog(context, ref, api, isLoading, errorMsg);
+        _showCodeEntryDialog(context, ref, api, isLoading, errorMsg, userProfile, subscription);
       }
     });
   }
@@ -208,6 +212,8 @@ class AccountPage extends HookConsumerWidget {
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
   ) {
     final codeController = TextEditingController();
     final theme = Theme.of(context);
