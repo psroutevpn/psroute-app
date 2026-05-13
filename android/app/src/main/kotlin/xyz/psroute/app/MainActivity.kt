@@ -19,6 +19,7 @@ import xyz.psroute.app.constant.ServiceMode
 import xyz.psroute.app.constant.Status
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +42,7 @@ class MainActivity : FlutterFragmentActivity(), ServiceConnection.Callback {
     val serviceStatus = MutableLiveData(Status.Stopped)
     val serviceAlerts = MutableLiveData<ServiceEvent?>(null)
 
+    @SuppressLint("HardwareIds")
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         instance = this
@@ -49,6 +51,19 @@ class MainActivity : FlutterFragmentActivity(), ServiceConnection.Callback {
         flutterEngine.plugins.add(PlatformSettingsHandler())
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(LogHandler())
+
+        // MethodChannel for device fingerprint — returns Settings.Secure.ANDROID_ID (SSAID)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "xyz.psroute.app/device")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "getAndroidId") {
+                    val androidId = android.provider.Settings.Secure.getString(
+                        contentResolver, android.provider.Settings.Secure.ANDROID_ID
+                    )
+                    result.success(androidId)
+                } else {
+                    result.notImplemented()
+                }
+            }
 //        flutterEngine.plugins.add(GroupsChannel(lifecycleScope))
 //        flutterEngine.plugins.add(ActiveGroupsChannel(lifecycleScope))
 //        flutterEngine.plugins.add(StatsChannel(lifecycleScope))

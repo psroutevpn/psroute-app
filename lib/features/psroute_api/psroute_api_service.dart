@@ -123,6 +123,75 @@ class PSRouteApiService with InfraLogger {
     }
   }
 
+  /// Anonymous trial auth using device fingerprint.
+  /// Creates trial account or re-logs in if fingerprint already used.
+  Future<Map<String, dynamic>> authAnonymous(String deviceFingerprint) async {
+    try {
+      final response = await _dio.post('/auth/anonymous', data: {
+        'device_fingerprint': deviceFingerprint,
+      });
+      final data = response.data as Map<String, dynamic>;
+      final token = data['token'] as String;
+      await _saveToken(token);
+      return data;
+    } on DioException catch (e) {
+      loggy.warning('authAnonymous failed', e);
+      if (e.response?.statusCode == 429) {
+        throw Exception('Слишком много запросов. Попробуйте позже.');
+      }
+      if (e.response?.statusCode == 500) {
+        throw Exception('Сервер временно недоступен. Попробуйте позже.');
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Нет связи с сервером. Проверьте интернет.');
+      }
+      throw Exception('Ошибка создания аккаунта. Попробуйте позже.');
+    }
+  }
+
+  /// Send verification code to email.
+  Future<Map<String, dynamic>> emailSendCode(String email) async {
+    try {
+      final response = await _dio.post('/auth/email/send-code', data: {
+        'email': email,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw Exception('Слишком много запросов. Подождите.');
+      }
+      if (e.response?.statusCode == 400) {
+        final msg = e.response?.data?['detail'] ?? 'Некорректный email';
+        throw Exception(msg);
+      }
+      throw Exception('Ошибка отправки кода. Попробуйте позже.');
+    }
+  }
+
+  /// Verify email code. Creates user if new, returns token.
+  Future<Map<String, dynamic>> emailVerifyCode(String email, String code) async {
+    try {
+      final response = await _dio.post('/auth/email/verify', data: {
+        'email': email,
+        'code': code,
+      });
+      final data = response.data as Map<String, dynamic>;
+      final token = data['token'] as String;
+      await _saveToken(token);
+      return data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        final msg = e.response?.data?['detail'] ?? 'Неверный код';
+        throw Exception(msg);
+      }
+      if (e.response?.statusCode == 429) {
+        throw Exception('Слишком много попыток. Подождите 5 минут.');
+      }
+      throw Exception('Ошибка проверки кода. Попробуйте позже.');
+    }
+  }
+
   /// Verify 6-digit login code from bot.
   /// User sends /login in bot → gets code → enters in app.
   Future<Map<String, dynamic>> verifyLoginCode(String code) async {

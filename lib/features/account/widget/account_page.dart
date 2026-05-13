@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/features/profile/notifier/profile_notifier.dart';
+import 'package:hiddify/features/psroute_api/device_fingerprint.dart';
 import 'package:hiddify/features/psroute_api/psroute_api_service.dart';
 import 'package:hiddify/features/referral/widget/referral_page.dart';
 import 'package:hiddify/utils/utils.dart';
@@ -119,72 +120,182 @@ class AccountPage extends HookConsumerWidget {
   ) {
     return Scaffold(
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                FluentIcons.person_circle_24_regular,
-                size: 80,
-                color: theme.colorScheme.primary,
-              ),
-              const Gap(24),
-              Text(
-                'Аккаунт',
-                style: theme.textTheme.headlineMedium,
-              ),
-              const Gap(12),
-              Text(
-                'Войдите через Telegram для управления подпиской',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      FluentIcons.shield_checkmark_24_regular,
+                      size: 80,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const Gap(24),
+                    Text(
+                      'PS Route',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Gap(8),
+                    Text(
+                      'Быстрый и надёжный VPN',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(32),
+
+                    // 1. Quick Start — anonymous trial (primary CTA)
+                    FilledButton.icon(
+                      onPressed: isLoading.value
+                          ? null
+                          : () => _startAnonymousTrial(
+                                context, ref, api, isLoading, errorMsg,
+                                userProfile, subscription,
+                              ),
+                      icon: const Icon(FluentIcons.rocket_24_regular),
+                      label: const Text('Быстрый старт'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      'Пробный период — без регистрации',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                    const Gap(24),
+
+                    // Divider with "или"
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'или войдите',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const Gap(24),
+
+                    // 2. Email login
+                    OutlinedButton.icon(
+                      onPressed: isLoading.value
+                          ? null
+                          : () => _showEmailLoginFlow(
+                                context, ref, api, isLoading, errorMsg,
+                                userProfile, subscription,
+                              ),
+                      icon: const Icon(FluentIcons.mail_24_regular),
+                      label: const Text('Войти через Email'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+                    const Gap(12),
+
+                    // 3. Telegram login
+                    OutlinedButton.icon(
+                      onPressed: isLoading.value
+                          ? null
+                          : () => _showTelegramLoginFlow(
+                                context, ref, api, isLoading, errorMsg,
+                                userProfile, subscription,
+                              ),
+                      icon: const Icon(FluentIcons.chat_24_regular),
+                      label: const Text('Войти через Telegram'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+                    const Gap(12),
+
+                    // 4. Website code login
+                    OutlinedButton.icon(
+                      onPressed: isLoading.value
+                          ? null
+                          : () => _showWebsiteCodeFlow(
+                                context, ref, api, isLoading, errorMsg,
+                                userProfile, subscription,
+                              ),
+                      icon: const Icon(FluentIcons.globe_24_regular),
+                      label: const Text('Код с сайта'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+
+                    if (errorMsg.value != null) ...[
+                      const Gap(16),
+                      Text(
+                        errorMsg.value!,
+                        style: TextStyle(color: theme.colorScheme.error),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
                 ),
-                textAlign: TextAlign.center,
               ),
-              const Gap(32),
-              FilledButton.icon(
-                onPressed: isLoading.value
-                    ? null
-                    : () => _showLoginFlow(context, ref, api, isLoading, errorMsg, userProfile, subscription),
-                icon: const Icon(FluentIcons.chat_24_regular),
-                label: const Text('Войти через Telegram'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
-                ),
-              ),
-              const Gap(16),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  await UriUtils.tryLaunch(
-                    Uri.parse('https://t.me/PSRouteBot?start=trial'),
-                  );
-                },
-                icon: const Icon(FluentIcons.rocket_24_regular),
-                label: const Text('Попробовать бесплатно'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52),
-                ),
-              ),
-              if (errorMsg.value != null) ...[
-                const Gap(16),
-                Text(
-                  errorMsg.value!,
-                  style: TextStyle(color: theme.colorScheme.error),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Two-step login flow:
-  /// 1. Open bot to get 6-digit code
-  /// 2. Enter code in dialog → verify via API
-  void _showLoginFlow(
+  // ─── Auth Method 1: Anonymous Trial ──────────────────────
+
+  Future<void> _startAnonymousTrial(
+    BuildContext context,
+    WidgetRef ref,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
+  ) async {
+    isLoading.value = true;
+    errorMsg.value = null;
+    try {
+      final fingerprint = await DeviceFingerprint.generate();
+      final result = await api.authAnonymous(fingerprint);
+
+      // Auto-import subscription URL
+      final subUrl = result['sub_url']?.toString();
+      if (subUrl != null && subUrl.isNotEmpty) {
+        try {
+          await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+        } catch (e) {
+          debugPrint('Auto-import subscription failed: $e');
+        }
+      }
+
+      await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMsg.value = msg;
+      isLoading.value = false;
+    }
+  }
+
+  // ─── Auth Method 2: Email ────────────────────────────────
+
+  void _showEmailLoginFlow(
     BuildContext context,
     WidgetRef ref,
     PSRouteApiService api,
@@ -193,23 +304,104 @@ class AccountPage extends HookConsumerWidget {
     ValueNotifier<Map<String, dynamic>?> userProfile,
     ValueNotifier<Map<String, dynamic>?> subscription,
   ) {
-    // First open bot so user can get the code
-    UriUtils.tryLaunch(
-      Uri.parse('https://t.me/PSRouteBot?start=login'),
-    );
+    final emailController = TextEditingController();
+    final theme = Theme.of(context);
+    bool isSending = false;
+    String? dialogError;
+    // Capture page context BEFORE entering dialog builder —
+    // StatefulBuilder shadows `context` with its own (dialog) context,
+    // which becomes unmounted after pop().
+    final pageContext = context;
 
-    // Then show code entry dialog
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (context.mounted) {
-        _showCodeEntryDialog(context, ref, api, isLoading, errorMsg, userProfile, subscription);
-      }
-    });
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (_, setDialogState) {
+            return AlertDialog(
+              title: const Text('Вход через Email'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Введите email — мы отправим код подтверждения:',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const Gap(16),
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'your@email.com',
+                      errorText: dialogError,
+                      prefixIcon: const Icon(FluentIcons.mail_24_regular),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Отмена'),
+                ),
+                FilledButton(
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          final email = emailController.text.trim().toLowerCase();
+                          if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
+                            setDialogState(() => dialogError = 'Введите корректный email');
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isSending = true;
+                            dialogError = null;
+                          });
+
+                          try {
+                            await api.emailSendCode(email);
+                            emailController.dispose();
+                            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+
+                            // Show code entry dialog using PAGE context (not dialog context)
+                            if (pageContext.mounted) {
+                              _showEmailCodeDialog(
+                                pageContext, ref, api, email, isLoading,
+                                errorMsg, userProfile, subscription,
+                              );
+                            }
+                          } catch (e) {
+                            final msg = e.toString().replaceFirst('Exception: ', '');
+                            setDialogState(() {
+                              isSending = false;
+                              dialogError = msg;
+                            });
+                          }
+                        },
+                  child: isSending
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Отправить код'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
-  void _showCodeEntryDialog(
+  void _showEmailCodeDialog(
     BuildContext context,
     WidgetRef ref,
     PSRouteApiService api,
+    String email,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
     ValueNotifier<Map<String, dynamic>?> userProfile,
@@ -217,7 +409,6 @@ class AccountPage extends HookConsumerWidget {
   ) {
     final codeController = TextEditingController();
     final theme = Theme.of(context);
-    // State declared OUTSIDE the builder so it persists across rebuilds
     bool isVerifying = false;
     String? dialogError;
 
@@ -226,7 +417,7 @@ class AccountPage extends HookConsumerWidget {
       barrierDismissible: true,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (_, setDialogState) {
             return AlertDialog(
               title: const Text('Введите код'),
               content: Column(
@@ -234,7 +425,7 @@ class AccountPage extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Отправьте /login боту @PSRouteBot и введите полученный 6-значный код:',
+                    'Код отправлен на $email:',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const Gap(16),
@@ -243,9 +434,7 @@ class AccountPage extends HookConsumerWidget {
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     style: theme.textTheme.headlineMedium?.copyWith(
                       letterSpacing: 8,
                       fontWeight: FontWeight.bold,
@@ -254,13 +443,8 @@ class AccountPage extends HookConsumerWidget {
                       hintText: '000000',
                       counterText: '',
                       errorText: dialogError,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                     ),
                     autofocus: true,
                   ),
@@ -270,7 +454,10 @@ class AccountPage extends HookConsumerWidget {
                 TextButton(
                   onPressed: isVerifying
                       ? null
-                      : () => Navigator.of(dialogContext).pop(),
+                      : () {
+                          codeController.dispose();
+                          Navigator.of(dialogContext).pop();
+                        },
                   child: const Text('Отмена'),
                 ),
                 FilledButton(
@@ -279,9 +466,167 @@ class AccountPage extends HookConsumerWidget {
                       : () async {
                           final code = codeController.text.trim();
                           if (code.length != 6 || !RegExp(r'^\d{6}$').hasMatch(code)) {
+                            setDialogState(() => dialogError = 'Введите 6-значный код');
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isVerifying = true;
+                            dialogError = null;
+                          });
+
+                          try {
+                            final result = await api.emailVerifyCode(email, code);
+                            errorMsg.value = null;
+                            codeController.dispose();
+                            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+
+                            // Auto-import subscription
+                            final subUrl = result['sub_url']?.toString();
+                            if (subUrl != null && subUrl.isNotEmpty) {
+                              try {
+                                await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+                              } catch (e) {
+                                debugPrint('Auto-import subscription failed: $e');
+                              }
+                            }
+
+                            isLoading.value = true;
+                            await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+                          } catch (e) {
+                            final msg = e.toString().replaceFirst('Exception: ', '');
                             setDialogState(() {
-                              dialogError = 'Введите 6-значный код';
+                              isVerifying = false;
+                              dialogError = msg;
                             });
+                          }
+                        },
+                  child: isVerifying
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Подтвердить'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── Auth Method 3: Telegram ─────────────────────────────
+
+  void _showTelegramLoginFlow(
+    BuildContext context,
+    WidgetRef ref,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
+  ) {
+    // Open bot so user can get the code
+    UriUtils.tryLaunch(Uri.parse('https://t.me/PSRouteBot?start=login'));
+
+    // Show code entry dialog
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (context.mounted) {
+        _showCodeEntryDialog(
+          context, ref, api, isLoading, errorMsg, userProfile, subscription,
+          title: 'Вход через Telegram',
+          hint: 'Отправьте /login боту @PSRouteBot\nи введите полученный 6-значный код:',
+        );
+      }
+    });
+  }
+
+  // ─── Auth Method 4: Website Code ─────────────────────────
+
+  void _showWebsiteCodeFlow(
+    BuildContext context,
+    WidgetRef ref,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription,
+  ) {
+    _showCodeEntryDialog(
+      context, ref, api, isLoading, errorMsg, userProfile, subscription,
+      title: 'Код с сайта',
+      hint: 'Получите код на psroute.xyz/register\nи введите его здесь:',
+    );
+  }
+
+  // ─── Shared: 6-digit code entry dialog ───────────────────
+
+  void _showCodeEntryDialog(
+    BuildContext context,
+    WidgetRef ref,
+    PSRouteApiService api,
+    ValueNotifier<bool> isLoading,
+    ValueNotifier<String?> errorMsg,
+    ValueNotifier<Map<String, dynamic>?> userProfile,
+    ValueNotifier<Map<String, dynamic>?> subscription, {
+    required String title,
+    required String hint,
+  }) {
+    final codeController = TextEditingController();
+    final theme = Theme.of(context);
+    bool isVerifying = false;
+    String? dialogError;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (_, setDialogState) {
+            return AlertDialog(
+              title: Text(title),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(hint, style: theme.textTheme.bodyMedium),
+                  const Gap(16),
+                  TextField(
+                    controller: codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    textAlign: TextAlign.center,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      letterSpacing: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '000000',
+                      counterText: '',
+                      errorText: dialogError,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    ),
+                    autofocus: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () {
+                          codeController.dispose();
+                          Navigator.of(dialogContext).pop();
+                        },
+                  child: const Text('Отмена'),
+                ),
+                FilledButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () async {
+                          final code = codeController.text.trim();
+                          if (code.length != 6 || !RegExp(r'^\d{6}$').hasMatch(code)) {
+                            setDialogState(() => dialogError = 'Введите 6-значный код');
                             return;
                           }
 
@@ -293,25 +638,19 @@ class AccountPage extends HookConsumerWidget {
                           try {
                             await api.verifyLoginCode(code);
                             errorMsg.value = null;
-                            // Close dialog on success
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
+                            codeController.dispose();
+                            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
-                            // Trigger rebuild: set loading, fetch profile, then unload
-                            // This replaces the broken isLoading=true/false sync pair
                             isLoading.value = true;
                             await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
 
-                            // Auto-import subscription URL into VPN core
+                            // Auto-import subscription URL
                             try {
                               final subUrl = subscription.value?['subscription_url']?.toString();
                               if (subUrl != null && subUrl.isNotEmpty) {
                                 await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
                               }
                             } catch (e) {
-                              // Non-fatal: user can add profile manually later
-                              // Don't show error — profile was loaded, VPN config can be added via Home screen
                               debugPrint('Auto-import subscription failed: $e');
                             }
                           } catch (e) {
@@ -323,11 +662,7 @@ class AccountPage extends HookConsumerWidget {
                           }
                         },
                   child: isVerifying
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('Войти'),
                 ),
               ],
