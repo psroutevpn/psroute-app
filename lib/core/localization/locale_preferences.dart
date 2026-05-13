@@ -10,9 +10,9 @@ class LocalePreferences extends _$LocalePreferences with AppLogger {
   @override
   AppLocale build() {
     final persisted = ref.watch(sharedPreferencesProvider).requireValue.getString("locale");
-    if (persisted == null) {
-      // PS Route: Russian market app — always default to Russian.
-      // User can change language manually in intro or settings.
+    // PS Route: Russian-only app. Force Russian regardless of saved preference.
+    // English was saved by Hiddify's default on some installs — override it.
+    if (persisted == null || persisted == "en") {
       return AppLocale.ru;
     }
     // keep backward compatibility with chinese after changing zh to zh_CN
