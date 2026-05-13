@@ -43,7 +43,7 @@ class AccountPage extends HookConsumerWidget {
     }
 
     if (!api.isAuthenticated) {
-      return _buildLoggedOutState(context, theme, api, isLoading, errorMsg);
+      return _buildLoggedOutState(context, theme, ref, api, isLoading, errorMsg);
     }
 
     if (isLoading.value) {
@@ -110,6 +110,7 @@ class AccountPage extends HookConsumerWidget {
   Widget _buildLoggedOutState(
     BuildContext context,
     ThemeData theme,
+    WidgetRef ref,
     PSRouteApiService api,
     ValueNotifier<bool> isLoading,
     ValueNotifier<String?> errorMsg,
