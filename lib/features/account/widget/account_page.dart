@@ -305,12 +305,14 @@ class AccountPage extends HookConsumerWidget {
 
                             // Auto-import subscription URL into VPN core
                             try {
-                              final subUrl = subscription.value?['subscription_url'] as String?;
+                              final subUrl = subscription.value?['subscription_url']?.toString();
                               if (subUrl != null && subUrl.isNotEmpty) {
-                                ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+                                await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
                               }
-                            } catch (_) {
+                            } catch (e) {
                               // Non-fatal: user can add profile manually later
+                              // Don't show error — profile was loaded, VPN config can be added via Home screen
+                              debugPrint('Auto-import subscription failed: $e');
                             }
                           } catch (e) {
                             final msg = e.toString().replaceFirst('Exception: ', '');
@@ -349,12 +351,14 @@ class AccountPage extends HookConsumerWidget {
     final profile = userProfile.value!;
     final sub = subscription.value;
 
-    final plan = profile['plan'] as String? ?? 'Нет';
-    final isActive = profile['is_active'] as bool? ?? false;
-    final isTrial = profile['is_trial'] as bool? ?? false;
-    final daysLeft = profile['days_left'] as int? ?? 0;
-    final refCode = profile['ref_code'] as String? ?? '';
-    final bonusDays = profile['bonus_days'] as int? ?? 0;
+    final plan = profile['plan']?.toString() ?? 'Нет';
+    final isActive = profile['is_active'] == true;
+    final isTrial = profile['is_trial'] == true;
+    final daysLeftRaw = profile['days_left'];
+    final daysLeft = (daysLeftRaw is num) ? daysLeftRaw.toInt() : int.tryParse(daysLeftRaw?.toString() ?? '') ?? 0;
+    final refCode = profile['ref_code']?.toString() ?? '';
+    final bonusDaysRaw = profile['bonus_days'];
+    final bonusDays = (bonusDaysRaw is num) ? bonusDaysRaw.toInt() : int.tryParse(bonusDaysRaw?.toString() ?? '') ?? 0;
 
     // Traffic — handle both int and double from JSON
     final trafficUsedRaw = sub?['traffic_used_bytes'];

@@ -610,6 +610,83 @@
     "reconnectMsg": "Переподключение для учета изменений...",
     "secure": "Защищено с помощью WARP"
   },
+  "psroute": {
+    "advancedSettings": "Расширенные настройки",
+    "advancedSettingsSubtitle": "Маршрутизация, DNS, TLS, WARP",
+    "accountTab": "Аккаунт",
+    "tagline": "Быстрый и надёжный VPN\nдля вашей конфиденциальности",
+    "account": {
+      "title": "Аккаунт",
+      "loginPrompt": "Войдите через Telegram, чтобы управлять подпиской",
+      "loginButton": "Войти через Telegram",
+      "tryFree": "Попробовать бесплатно",
+      "enterCode": "Введите код",
+      "loginInstructions": "Отправьте /login боту @PSRouteBot и введите полученный 6-значный код:",
+      "invalidCode": "Введите 6-значный код",
+      "login": "Войти",
+      "profileLoadError": "Не удалось загрузить профиль",
+      "retry": "Повторить",
+      "trialPlan": "Пробный",
+      "inactive": "Неактивна",
+      "daysRemaining": "Дней осталось",
+      "traffic": "Трафик",
+      "referralCode": "Реферальный код",
+      "codeCopied": "Код скопирован",
+      "bonusDays": "Бонусных дней: $n",
+      "extendSubscription": "Продлить подписку",
+      "buySubscription": "Купить подписку",
+      "referralProgram": "Реферальная программа",
+      "logout": "Выйти"
+    },
+    "plans": {
+      "selectPlan": "Выберите тариф",
+      "loadError": "Не удалось загрузить тарифы",
+      "paymentMethod": "Способ оплаты",
+      "cardSbp": "Карта / СБП",
+      "viaLava": "Через LAVA",
+      "crypto": "Криптовалюта",
+      "cryptoSubtitle": "USDT, TON, BTC, ETH",
+      "telegramStars": "Telegram Stars",
+      "month1": "1 месяц",
+      "month3": "3 месяца",
+      "month6": "6 месяцев",
+      "month12": "12 месяцев"
+    },
+    "aiProxy": {
+      "title": "AI Прокси",
+      "accessTitle": "Доступ к AI моделям",
+      "loginPrompt": "Войдите, чтобы получить доступ к ChatGPT, Claude и другим моделям",
+      "loginButton": "Войти",
+      "placeholder": "Задайте вопрос AI",
+      "messageHint": "Введите сообщение...",
+      "noResponse": "Нет ответа"
+    },
+    "referral": {
+      "title": "Реферальная программа",
+      "loginPrompt": "Войдите, чтобы получить доступ к реферальной программе",
+      "yourCode": "Ваш реферальный код",
+      "copy": "Скопировать",
+      "share": "Поделиться",
+      "shareText": "Попробуй PS Route — быстрый и надёжный сервис! Перейди по ссылке и получи бонус: ",
+      "friendsInvited": "Друзей приглашено",
+      "bonusDays": "Бонусных дней",
+      "howItWorks": "Как это работает",
+      "step1": "Поделитесь кодом с другом",
+      "step2": "Друг регистрируется и оплачивает подписку",
+      "step3": "Вы оба получаете +7 бесплатных дней"
+    },
+    "onboarding": {
+      "welcomeTitle": "Добро пожаловать в PS Route",
+      "welcomeSubtitle": "Быстрый и надёжный VPN\nдля вашей конфиденциальности",
+      "howTitle": "Как это работает",
+      "howSubtitle": "Установи → Нажми кнопку →\nНаслаждайся свободным интернетом",
+      "secureTitle": "Безопасное подключение",
+      "secureSubtitle": "Приложение запросит разрешение на безопасное соединение.\nЭто необходимо для защищённой передачи данных.",
+      "back": "Назад",
+      "next": "Далее",
+      "start": "Начать"
+    }
+  },
   "errors": {
     "unexpected": "Непредвиденная ошибка",
     "connection": {

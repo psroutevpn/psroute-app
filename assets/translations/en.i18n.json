@@ -609,6 +609,83 @@
     "reconnectMsg": "Reconnecting for taking into account the changes...",
     "secure": "Secured by WARP"
   },
+  "psroute": {
+    "advancedSettings": "Advanced settings",
+    "advancedSettingsSubtitle": "Routing, DNS, TLS, WARP",
+    "accountTab": "Account",
+    "tagline": "Fast and reliable VPN\nfor your privacy",
+    "account": {
+      "title": "Account",
+      "loginPrompt": "Log in via Telegram to manage your subscription",
+      "loginButton": "Log in via Telegram",
+      "tryFree": "Try for free",
+      "enterCode": "Enter code",
+      "loginInstructions": "Send /login to @PSRouteBot and enter the 6-digit code you receive:",
+      "invalidCode": "Enter a 6-digit code",
+      "login": "Log in",
+      "profileLoadError": "Failed to load profile",
+      "retry": "Retry",
+      "trialPlan": "Trial",
+      "inactive": "Inactive",
+      "daysRemaining": "Days remaining",
+      "traffic": "Traffic",
+      "referralCode": "Referral code",
+      "codeCopied": "Code copied",
+      "bonusDays": "Bonus days: $n",
+      "extendSubscription": "Extend subscription",
+      "buySubscription": "Buy subscription",
+      "referralProgram": "Referral program",
+      "logout": "Log out"
+    },
+    "plans": {
+      "selectPlan": "Choose a plan",
+      "loadError": "Failed to load plans",
+      "paymentMethod": "Payment method",
+      "cardSbp": "Card / SBP",
+      "viaLava": "Via LAVA",
+      "crypto": "Cryptocurrency",
+      "cryptoSubtitle": "USDT, TON, BTC, ETH",
+      "telegramStars": "Telegram Stars",
+      "month1": "1 month",
+      "month3": "3 months",
+      "month6": "6 months",
+      "month12": "12 months"
+    },
+    "aiProxy": {
+      "title": "AI Proxy",
+      "accessTitle": "Access to AI models",
+      "loginPrompt": "Log in to access ChatGPT, Claude, and other models",
+      "loginButton": "Log in",
+      "placeholder": "Ask AI a question",
+      "messageHint": "Enter a message...",
+      "noResponse": "No response"
+    },
+    "referral": {
+      "title": "Referral program",
+      "loginPrompt": "Log in to access the referral program",
+      "yourCode": "Your referral code",
+      "copy": "Copy",
+      "share": "Share",
+      "shareText": "Try PS Route — a fast and reliable service! Follow the link and get a bonus: ",
+      "friendsInvited": "Friends invited",
+      "bonusDays": "Bonus days",
+      "howItWorks": "How it works",
+      "step1": "Share the code with a friend",
+      "step2": "Friend registers and pays for a subscription",
+      "step3": "You both get +7 free days"
+    },
+    "onboarding": {
+      "welcomeTitle": "Welcome to PS Route",
+      "welcomeSubtitle": "Fast and reliable VPN\nfor your privacy",
+      "howTitle": "How it works",
+      "howSubtitle": "Install → Tap the button →\nEnjoy unrestricted internet",
+      "secureTitle": "Secure connection",
+      "secureSubtitle": "The app will request permission for a secure connection.\nThis is needed for safe data transfer.",
+      "back": "Back",
+      "next": "Next",
+      "start": "Start"
+    }
+  },
   "errors": {
     "unexpected": "Unexpected error",
     "connection": {

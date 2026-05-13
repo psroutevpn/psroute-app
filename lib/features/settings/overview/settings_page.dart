@@ -139,7 +139,7 @@ class SettingsPage extends HookConsumerWidget {
           SwitchListTile(
             secondary: const Icon(Icons.tune_rounded),
             title: const Text("Расширенные настройки"),
-            subtitle: const Text("Routing, DNS, TLS, WARP"),
+            subtitle: const Text("Маршрутизация, DNS, TLS, WARP"),
             value: showAdvanced.value,
             onChanged: (v) => showAdvanced.value = v,
           ),
