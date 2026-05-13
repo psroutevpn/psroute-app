@@ -21,7 +21,16 @@ class SingboxRule with _$SingboxRule {
   factory SingboxRule.fromJson(Map<String, dynamic> json) => _$SingboxRuleFromJson(json);
 }
 
-enum RuleOutbound { proxy, bypass, block }
+@JsonEnum(valueField: 'key')
+enum RuleOutbound {
+  proxy(0),
+  bypass(1),
+  block(3);
+
+  const RuleOutbound(this.key);
+
+  final int key;
+}
 
 @JsonEnum(valueField: 'key')
 enum RuleNetwork {
