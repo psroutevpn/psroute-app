@@ -313,6 +313,8 @@ class AccountPage extends HookConsumerWidget {
     // which becomes unmounted after pop().
     final pageContext = context;
 
+    String? savedEmail;
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -367,16 +369,8 @@ class AccountPage extends HookConsumerWidget {
 
                           try {
                             await api.emailSendCode(email);
-                            emailController.dispose();
+                            savedEmail = email;
                             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-
-                            // Show code entry dialog using PAGE context (not dialog context)
-                            if (pageContext.mounted) {
-                              _showEmailCodeDialog(
-                                pageContext, ref, api, email, isLoading,
-                                errorMsg, userProfile, subscription,
-                              );
-                            }
                           } catch (e) {
                             final msg = e.toString().replaceFirst('Exception: ', '');
                             setDialogState(() {
@@ -394,7 +388,16 @@ class AccountPage extends HookConsumerWidget {
           },
         );
       },
-    );
+    ).then((_) {
+      emailController.dispose();
+      // Show code entry dialog after email dialog is fully closed
+      if (savedEmail != null && pageContext.mounted) {
+        _showEmailCodeDialog(
+          pageContext, ref, api, savedEmail!, isLoading,
+          errorMsg, userProfile, subscription,
+        );
+      }
+    });
   }
 
   void _showEmailCodeDialog(
@@ -411,6 +414,7 @@ class AccountPage extends HookConsumerWidget {
     final theme = Theme.of(context);
     bool isVerifying = false;
     String? dialogError;
+    Map<String, dynamic>? verifyResult;
 
     showDialog(
       context: context,
@@ -454,10 +458,7 @@ class AccountPage extends HookConsumerWidget {
                 TextButton(
                   onPressed: isVerifying
                       ? null
-                      : () {
-                          codeController.dispose();
-                          Navigator.of(dialogContext).pop();
-                        },
+                      : () => Navigator.of(dialogContext).pop(),
                   child: const Text('Отмена'),
                 ),
                 FilledButton(
@@ -476,23 +477,9 @@ class AccountPage extends HookConsumerWidget {
                           });
 
                           try {
-                            final result = await api.emailVerifyCode(email, code);
+                            verifyResult = await api.emailVerifyCode(email, code);
                             errorMsg.value = null;
-                            codeController.dispose();
                             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-
-                            // Auto-import subscription
-                            final subUrl = result['sub_url']?.toString();
-                            if (subUrl != null && subUrl.isNotEmpty) {
-                              try {
-                                await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
-                              } catch (e) {
-                                debugPrint('Auto-import subscription failed: $e');
-                              }
-                            }
-
-                            isLoading.value = true;
-                            await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
                           } catch (e) {
                             final msg = e.toString().replaceFirst('Exception: ', '');
                             setDialogState(() {
@@ -510,7 +497,23 @@ class AccountPage extends HookConsumerWidget {
           },
         );
       },
-    );
+    ).then((_) async {
+      codeController.dispose();
+      if (verifyResult != null) {
+        // Auto-import subscription
+        final subUrl = verifyResult!['sub_url']?.toString();
+        if (subUrl != null && subUrl.isNotEmpty) {
+          try {
+            await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+          } catch (e) {
+            debugPrint('Auto-import subscription failed: $e');
+          }
+        }
+
+        isLoading.value = true;
+        await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+      }
+    });
   }
 
   // ─── Auth Method 3: Telegram ─────────────────────────────
@@ -574,6 +577,7 @@ class AccountPage extends HookConsumerWidget {
     final theme = Theme.of(context);
     bool isVerifying = false;
     String? dialogError;
+    bool loginSuccess = false;
 
     showDialog(
       context: context,
@@ -614,10 +618,7 @@ class AccountPage extends HookConsumerWidget {
                 TextButton(
                   onPressed: isVerifying
                       ? null
-                      : () {
-                          codeController.dispose();
-                          Navigator.of(dialogContext).pop();
-                        },
+                      : () => Navigator.of(dialogContext).pop(),
                   child: const Text('Отмена'),
                 ),
                 FilledButton(
@@ -638,21 +639,8 @@ class AccountPage extends HookConsumerWidget {
                           try {
                             await api.verifyLoginCode(code);
                             errorMsg.value = null;
-                            codeController.dispose();
+                            loginSuccess = true;
                             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-
-                            isLoading.value = true;
-                            await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
-
-                            // Auto-import subscription URL
-                            try {
-                              final subUrl = subscription.value?['subscription_url']?.toString();
-                              if (subUrl != null && subUrl.isNotEmpty) {
-                                await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
-                              }
-                            } catch (e) {
-                              debugPrint('Auto-import subscription failed: $e');
-                            }
                           } catch (e) {
                             final msg = e.toString().replaceFirst('Exception: ', '');
                             setDialogState(() {
@@ -670,7 +658,23 @@ class AccountPage extends HookConsumerWidget {
           },
         );
       },
-    );
+    ).then((_) async {
+      codeController.dispose();
+      if (loginSuccess) {
+        isLoading.value = true;
+        await _loadProfile(api, userProfile, subscription, errorMsg, isLoading);
+
+        // Auto-import subscription URL after profile is loaded
+        try {
+          final subUrl = subscription.value?['subscription_url']?.toString();
+          if (subUrl != null && subUrl.isNotEmpty) {
+            await ref.read(addProfileNotifierProvider.notifier).addClipboard(subUrl);
+          }
+        } catch (e) {
+          debugPrint('Auto-import subscription failed: $e');
+        }
+      }
+    });
   }
 
   Widget _buildLoggedInState(
