@@ -843,7 +843,13 @@ class PlanSelectionPage extends HookConsumerWidget {
       // LAVA / CryptoCloud → open payment URL in browser
       final paymentUrl = result['payment_url'] as String?;
       if (paymentUrl != null && paymentUrl.isNotEmpty) {
-        await UriUtils.tryLaunch(Uri.parse(paymentUrl));
+        final launched = await UriUtils.tryLaunch(Uri.parse(paymentUrl));
+        if (!launched && parentContext.mounted) {
+          await Clipboard.setData(ClipboardData(text: paymentUrl));
+          ScaffoldMessenger.of(parentContext).showSnackBar(
+            const SnackBar(content: Text('Ссылка скопирована — откройте в браузере')),
+          );
+        }
       }
     } catch (e) {
       // Close loading if still showing

@@ -44,12 +44,12 @@ final loadingConfig = RoutingConfig(
 );
 
 String getNameOfBranch(bool isMobileBreakpoint, bool showProfilesAction, int index) => isMobileBreakpoint
-    ? ['home', 'account', 'settings'][index]
-    : ['home', 'account', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'][index];
+    ? ['account', 'home', 'settings'][index]
+    : ['account', 'home', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'][index];
 
 int getIndexOfBranch(bool isMobileBreakpoint, bool showProfilesAction, String name) => isMobileBreakpoint
-    ? ['home', 'account', 'settings'].indexOf(name)
-    : ['home', 'account', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'].indexOf(name);
+    ? ['account', 'home', 'settings'].indexOf(name)
+    : ['account', 'home', if (showProfilesAction) 'profiles', 'settings', 'logs', 'about'].indexOf(name);
 
 @Riverpod(keepAlive: true)
 class RoutingConfigNotifier extends _$RoutingConfigNotifier {
@@ -85,7 +85,7 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
             WidgetsBinding.instance.addPostFrameCallback(
               (_) => ref.read(bottomSheetsNotifierProvider.notifier).showAddProfile(url: url),
             );
-          return '/home';
+          return '/account';
         } else if (url != null) {
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => ref.read(bottomSheetsNotifierProvider.notifier).showAddProfile(url: url),
@@ -102,6 +102,15 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
             showProfilesAction: showProfilesAction,
           ),
           branches: <StatefulShellBranch>[
+            StatefulShellBranch(
+              routes: <GoRoute>[
+                GoRoute(
+                  name: 'account',
+                  path: '/account',
+                  builder: (_, _) => FocusScope(node: branchesScope['account'], child: const AccountPage()),
+                ),
+              ],
+            ),
             StatefulShellBranch(
               routes: <GoRoute>[
                 GoRoute(
@@ -126,15 +135,6 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                         ),
                       ),
                   ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  name: 'account',
-                  path: '/account',
-                  builder: (_, _) => FocusScope(node: branchesScope['account'], child: const AccountPage()),
                 ),
               ],
             ),

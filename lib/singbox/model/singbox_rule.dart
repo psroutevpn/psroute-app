@@ -25,11 +25,11 @@ enum RuleOutbound { proxy, bypass, block }
 
 @JsonEnum(valueField: 'key')
 enum RuleNetwork {
-  tcpAndUdp(""),
-  tcp("tcp"),
-  udp("udp");
+  tcpAndUdp(0),
+  tcp(1),
+  udp(2);
 
   const RuleNetwork(this.key);
 
-  final String? key;
+  final int key;
 }
