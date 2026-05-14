@@ -217,13 +217,13 @@ abstract class ConfigOptions {
     mapTo: const OptionalRangeJsonConverter().toJson,
   );
 
-  static final enableMux = PreferencesNotifier.create<bool, bool>("enable-mux", false);
+  static final enableMux = PreferencesNotifier.create<bool, bool>("enable-mux", true);
 
-  static final muxPadding = PreferencesNotifier.create<bool, bool>("mux-padding", false);
+  static final muxPadding = PreferencesNotifier.create<bool, bool>("mux-padding", true);
 
   static final muxMaxStreams = PreferencesNotifier.create<int, int>(
     "mux-max-streams",
-    8,
+    4,
     validator: (value) => value > 0,
   );
 
@@ -336,10 +336,10 @@ abstract class ConfigOptions {
     // "enable-dns-routing": enableDnsRouting,
 
     // mux
-    // "mux.enable": enableMux,
-    // "mux.padding": muxPadding,
-    // "mux.max-streams": muxMaxStreams,
-    // "mux.protocol": muxProtocol,
+    "mux.enable": enableMux,
+    "mux.padding": muxPadding,
+    "mux.max-streams": muxMaxStreams,
+    "mux.protocol": muxProtocol,
 
     // tls-tricks
     "tls-tricks.enable-fragment": enableTlsFragment,
@@ -455,12 +455,12 @@ abstract class ConfigOptions {
       enableFakeDns: ref.watch(enableFakeDns),
       // enableDnsRouting: ref.watch(enableDnsRouting),
       independentDnsCache: ref.watch(independentDnsCache),
-      // mux: SingboxMuxOption(
-      //   enable: ref.watch(enableMux),
-      //   padding: ref.watch(muxPadding),
-      //   maxStreams: ref.watch(muxMaxStreams),
-      //   protocol: ref.watch(muxProtocol),
-      // ),
+      mux: SingboxMuxOption(
+        enable: ref.watch(enableMux),
+        padding: ref.watch(muxPadding),
+        maxStreams: ref.watch(muxMaxStreams),
+        protocol: ref.watch(muxProtocol),
+      ),
       tlsTricks: SingboxTlsTricks(
         enableFragment: ref.watch(enableTlsFragment),
         fragmentSize: ref.watch(tlsFragmentSize),
