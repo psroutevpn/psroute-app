@@ -273,7 +273,7 @@ android-apk-release:
 	  --build-target=$(TARGET) \
 	  --build-target-platform=android-arm64 \
 	  --build-dart-define=sentry_dsn=$(SENTRY_DSN) \
-	  --build-flutter-args=--split-per-abi
+	  --flutter-build-args=split-per-abi
 	ls -R build/app/outputs
 
 android-apk-fat-release:
