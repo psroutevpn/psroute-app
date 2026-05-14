@@ -82,7 +82,8 @@ jobs:
       - name: Rename outputs
         run: |
           mkdir -p out
-          # split-per-abi produces app-arm64-v8a-release.apk
+          # ndk.abiFilters in build.gradle ensures arm64-only
+          cp ./build/app/outputs/flutter-apk/app-release.apk out/PSRoute-android-arm64.apk || \
           cp ./build/app/outputs/flutter-apk/*arm64*.apk out/PSRoute-android-arm64.apk || true
           ls -lah out/
 
