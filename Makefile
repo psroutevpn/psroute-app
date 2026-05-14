@@ -271,6 +271,17 @@ android-apk-release:
 	  --targets apk \
 	  --skip-clean \
 	  --build-target=$(TARGET) \
+	  --build-target-platform=android-arm64 \
+	  --build-dart-define=sentry_dsn=$(SENTRY_DSN) \
+	  --build-flutter-args=--split-per-abi
+	ls -R build/app/outputs
+
+android-apk-fat-release:
+	fastforge package \
+	  --platform android \
+	  --targets apk \
+	  --skip-clean \
+	  --build-target=$(TARGET) \
 	  --build-target-platform=android-arm,android-arm64,android-x64 \
 	  --build-dart-define=sentry_dsn=$(SENTRY_DSN)
 	ls -R build/app/outputs

@@ -82,11 +82,9 @@ jobs:
       - name: Rename outputs
         run: |
           mkdir -p out
-          cp ./build/app/outputs/flutter-apk/*arm64-v8a*.apk out/PSRoute-android-arm64.apk || true
-          cp ./build/app/outputs/flutter-apk/*armeabi-v7a*.apk out/PSRoute-android-arm7.apk || true
-          cp ./build/app/outputs/flutter-apk/*x86_64*.apk out/PSRoute-android-x86_64.apk || true
-          cp ./build/app/outputs/flutter-apk/app-release.apk out/PSRoute-android-universal.apk || true
-          ls -la out/
+          # split-per-abi produces app-arm64-v8a-release.apk
+          cp ./build/app/outputs/flutter-apk/*arm64*.apk out/PSRoute-android-arm64.apk || true
+          ls -lah out/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -106,6 +104,6 @@ jobs:
           prerelease: true
           generate_release_notes: false
           body: |
-            Автоматическая сборка PS Route Android APK.
+            PS Route Android APK (arm64-only, ~70MB).
 
-            Скачайте `PSRoute-android-universal.apk` для установки на любое Android устройство.
+            Скачайте `PSRoute-android-arm64.apk` — подходит для 95%+ Android устройств.
