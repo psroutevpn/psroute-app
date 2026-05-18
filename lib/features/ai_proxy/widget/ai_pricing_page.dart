@@ -6,12 +6,10 @@ import 'package:hiddify/features/psroute_api/psroute_api_service.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-enum AIPricingReason { notLoggedIn, noSubscription }
-
+/// Shows AI subscription pricing and features.
+/// Displayed when user is logged in but has no AI subscription.
 class AIPricingPage extends HookConsumerWidget {
-  const AIPricingPage({super.key, required this.reason});
-
-  final AIPricingReason reason;
+  const AIPricingPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,9 +49,7 @@ class AIPricingPage extends HookConsumerWidget {
             ),
             const Gap(8),
             Text(
-              reason == AIPricingReason.notLoggedIn
-                  ? 'Войдите в аккаунт для доступа к AI моделям'
-                  : 'Подключите AI для доступа к ChatGPT, Claude и другим моделям',
+              'Подключите AI для доступа к ChatGPT, Claude и другим моделям',
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -61,76 +57,59 @@ class AIPricingPage extends HookConsumerWidget {
             ),
             const Gap(32),
 
-            // If not logged in — show login button
-            if (reason == AIPricingReason.notLoggedIn) ...[
-              FilledButton.icon(
-                onPressed: () {
-                  UriUtils.tryLaunch(
-                    Uri.parse('https://t.me/PSRouteBot?start=login'),
-                  );
-                },
-                icon: const Icon(FluentIcons.person_24_regular),
-                label: const Text('Войти через Telegram'),
-              ),
-              const Gap(16),
-            ],
+            // Features list
+            _FeatureItem(
+              icon: FluentIcons.chat_sparkle_24_regular,
+              title: 'ChatGPT, Claude, Gemini',
+              subtitle: 'Все топовые модели в одном месте',
+            ),
+            _FeatureItem(
+              icon: FluentIcons.shield_checkmark_24_regular,
+              title: 'Без блокировок',
+              subtitle: 'Работает из России без VPN',
+            ),
+            _FeatureItem(
+              icon: FluentIcons.history_24_regular,
+              title: 'История чатов',
+              subtitle: 'Все диалоги сохраняются',
+            ),
+            _FeatureItem(
+              icon: FluentIcons.rocket_24_regular,
+              title: 'Быстрый доступ',
+              subtitle: 'Прямое подключение через наш прокси',
+            ),
+            const Gap(24),
 
-            // If logged in but no sub — show features + pricing
-            if (reason == AIPricingReason.noSubscription) ...[
-              // Features list
-              _FeatureItem(
-                icon: FluentIcons.chat_sparkle_24_regular,
-                title: 'ChatGPT, Claude, Gemini',
-                subtitle: 'Все топовые модели в одном месте',
+            // Pricing cards
+            _PricingCard(
+              title: '1 месяц',
+              price: '299 ₽',
+              perMonth: '299 ₽/мес',
+              isPopular: false,
+              onTap: () => _buyAI(context, api, 'ai_1m', isLoading),
+            ),
+            const Gap(12),
+            _PricingCard(
+              title: '3 месяца',
+              price: '699 ₽',
+              perMonth: '233 ₽/мес',
+              isPopular: true,
+              onTap: () => _buyAI(context, api, 'ai_3m', isLoading),
+            ),
+            const Gap(12),
+            _PricingCard(
+              title: '12 месяцев',
+              price: '1 990 ₽',
+              perMonth: '166 ₽/мес',
+              isPopular: false,
+              onTap: () => _buyAI(context, api, 'ai_12m', isLoading),
+            ),
+            const Gap(16),
+            if (isLoading.value)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
               ),
-              _FeatureItem(
-                icon: FluentIcons.shield_checkmark_24_regular,
-                title: 'Без блокировок',
-                subtitle: 'Работает из России без VPN',
-              ),
-              _FeatureItem(
-                icon: FluentIcons.history_24_regular,
-                title: 'История чатов',
-                subtitle: 'Все диалоги сохраняются',
-              ),
-              _FeatureItem(
-                icon: FluentIcons.rocket_24_regular,
-                title: 'Быстрый доступ',
-                subtitle: 'Прямое подключение через наш прокси',
-              ),
-              const Gap(24),
-
-              // Pricing cards
-              _PricingCard(
-                title: '1 месяц',
-                price: '299 ₽',
-                perMonth: '299 ₽/мес',
-                isPopular: false,
-                onTap: () => _buyAI(context, api, 'ai_1m', isLoading),
-              ),
-              const Gap(12),
-              _PricingCard(
-                title: '3 месяца',
-                price: '699 ₽',
-                perMonth: '233 ₽/мес',
-                isPopular: true,
-                onTap: () => _buyAI(context, api, 'ai_3m', isLoading),
-              ),
-              const Gap(12),
-              _PricingCard(
-                title: '12 месяцев',
-                price: '1 990 ₽',
-                perMonth: '166 ₽/мес',
-                isPopular: false,
-                onTap: () => _buyAI(context, api, 'ai_12m', isLoading),
-              ),
-              const Gap(16),
-              if (isLoading.value)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-            ],
           ],
         ),
       ),
