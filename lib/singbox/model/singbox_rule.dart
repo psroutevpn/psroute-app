@@ -3,6 +3,24 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'singbox_rule.freezed.dart';
 part 'singbox_rule.g.dart';
 
+/// Converts a comma-separated string (Dart side) to/from a JSON array (Go side).
+/// Go's sing-box expects `domains`, `ip` as []string, but Dart stores them as
+/// a single comma-separated string for convenience in the UI layer.
+class _CommaSplitConverter implements JsonConverter<String?, List<dynamic>?> {
+  const _CommaSplitConverter();
+
+  @override
+  String? fromJson(List<dynamic>? json) =>
+      json?.map((e) => e.toString()).join(',');
+
+  @override
+  List<String>? toJson(String? object) => object
+      ?.split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+}
+
 @freezed
 class SingboxRule with _$SingboxRule {
   const SingboxRule._();
@@ -10,8 +28,8 @@ class SingboxRule with _$SingboxRule {
   @JsonSerializable(fieldRename: FieldRename.kebab)
   const factory SingboxRule({
     String? ruleSetUrl,
-    String? domains,
-    String? ip,
+    @_CommaSplitConverter() String? domains,
+    @_CommaSplitConverter() String? ip,
     String? port,
     String? protocol,
     @Default(RuleNetwork.tcpAndUdp) RuleNetwork network,
